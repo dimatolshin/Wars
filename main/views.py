@@ -58,7 +58,7 @@ class Tap(APIView):
         person.money += int(money)
         person.now_energy -= int(energy)
         castle.now_hp -= int(hp)
-        person.save()
+        person.save(update_fields=['now_energy'])
         castle.save()
         person_list = {'tg_id': person.tg_id, 'money': person.money, 'energy': person.now_energy}
         castle_list = {'hp': castle.now_hp, 'lvl': castle.lvl}
