@@ -34,7 +34,7 @@ class MainPage(APIView):
         castle_data = {'lvl': castle.lvl, 'hp': castle.now_hp}
         army_list = [
             {'id_person': i.id_person, 'name': i.name, 'speed': i.speed, 'bring_money': i.bring_money,
-             'image': encode_image_to_base64(i.image.image)} for i in person.army.all()]
+             'image': (i.image.image.url)} for i in person.army.all()]
         person_data = {'tg_id': person.tg_id, 'name': person.name, 'lvl': person.lvl, 'money': person.money,
                        'energy': person.now_energy,
                        'army': army_list}
