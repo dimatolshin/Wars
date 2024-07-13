@@ -20,8 +20,8 @@ app_name = "task"
 urlpatterns = [
     path('main_info/', MainPage.as_view(), name='main_info'),
     path('tap-tap/', Tap.as_view(), name='tap-tap'),
-    path('upgrade_army_bring_money/', Upgrade_army_bring_money.as_view(),name='upgrade_army_bring_money'),
-    path('upgrade_army_speed/',Upgrade_army_speed.as_view(),name='upgrade_army_speed'),
+    path('upgrade_army_bring_money/', Upgrade_army_bring_money.as_view(), name='upgrade_army_bring_money'),
+    path('upgrade_army_speed/', Upgrade_army_speed.as_view(), name='upgrade_army_speed'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
