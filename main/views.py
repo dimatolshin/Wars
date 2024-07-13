@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import render
 from rest_framework.views import APIView
@@ -56,7 +57,7 @@ class Tap(APIView):
         person = Person.objects.get(tg_id=person_id)
         castle = Castle.objects.get(person=person)
         person.money += int(money)
-        person.now_energy -= int(energy)
+        person.now_energy = energy
         castle.now_hp -= int(hp)
         person.save(update_fields=['now_energy'])
         castle.save()
@@ -65,3 +66,31 @@ class Tap(APIView):
         data.append({'person': person_list,
                      'castle': castle_list})
         return Response(data)
+
+
+class Upgrade_army_bring_money(APIView):
+    def post(self, request):
+        person = Person.objects.get(tg_id=request.data['tg_id'])
+        warrior = Army.objects.get(person=person, id_person=request.data['id_person'])
+        if person.money >= 100:
+            warrior.bring_money += 1
+            person.money -= 100
+            person.save()
+            warrior.save()
+            return Response({'Respose': 'Успешно!'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'Error': 'Недостаточно денег'}, status=status.HTTP_403_FORBIDDEN)
+
+
+class Upgrade_army_speed(APIView):
+    def post(self, request):
+        person = Person.objects.get(tg_id=request.data['tg_id'])
+        warrior = Army.objects.get(person=person, id_person=request.data['id_person'])
+        if person.money >= 100:
+            person.money -= 100
+            warrior.speed -= 5
+            person.save()
+            warrior.save()
+            return Response({'Respose': 'Успешно!'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'Error': 'Недостаточно денег'}, status=status.HTTP_403_FORBIDDEN)
