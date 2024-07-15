@@ -1,4 +1,4 @@
-function userInfo() {
+export function userInfo() {
     return fetch('http://127.0.0.1:8000/main/main_info/', {
         method: "POST",
         headers: {
@@ -8,5 +8,3 @@ function userInfo() {
     })
     .then(() => undefined)
 }
-
-userInfo()
