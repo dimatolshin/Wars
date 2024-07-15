@@ -41,7 +41,6 @@ prompt_toolkit==3.0.47
 psycopg2-binary==2.9.9
 pycparser==2.22
 pydantic==2.8.2
-pydantic_core==2.20.1
 PyJWT==2.8.0
 pyTelegramBotAPI==4.16.1
 python-crontab==3.2.0
