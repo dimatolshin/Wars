@@ -5,11 +5,11 @@ import imgDiamond from '../../assets/img/diamondMoney.png'
 import imgPlus from '../../assets/img/btn_plus.png'
 import { useSelector } from "react-redux"
 import { getCoin } from "../../provider/StoreProvider/selectors/getCoin"
-
+import { userInfo } from "../../api/userInfo"
 function CoinsDiamond() {
 
     const coin = useSelector(getCoin)
-
+    userInfo()
     return (
         <div className={style.coinBlock}>
             <p className={style.descrLvl}>LVL 1</p>
