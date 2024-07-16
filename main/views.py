@@ -9,6 +9,8 @@ from django.http import JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 import base64
+from django.http import HttpResponse
+import mimetypes
 
 def encode_image_to_base64(image_field):
     return base64.b64encode(image_field.read()).decode('utf-8')
@@ -16,9 +18,9 @@ def encode_image_to_base64(image_field):
 
 class MainPage(APIView):
     def post(self, request, *args, **kwargs):
-        response_data = []
         try:
             person = Person.objects.get(tg_id=self.request.data['tg_id'])
+            castle = Castle.objects.get(person=person)
         except Person.DoesNotExist:
             person = Person.objects.create(tg_id=self.request.data['tg_id'], name=self.request.data['name'])
             castle = Castle.objects.create(person=person)
@@ -30,25 +32,19 @@ class MainPage(APIView):
                                         image=Picture.objects.get(name='белый'), id_person=3)
             person.army.add(army1, army2, army3)
             person.save()
-        castle = Castle.objects.get(person=person)
-        castle_data = {'lvl': castle.lvl, 'hp': castle.now_hp}
-        army_list = [
-            {'id_person': i.id_person, 'name': i.name, 'speed': i.speed, 'bring_money': i.bring_money,
-             'image': (i.image.image.url)} for i in person.army.all()]
-        person_data = {'tg_id': person.tg_id, 'name': person.name, 'lvl': person.lvl, 'money': person.money,
-                       'energy': person.now_energy,
-                       'army': army_list}
-        response_data.append({
-            'person': person_data,
-            'castle': castle_data,
-        })
 
-        return Response(response_data)
+        person_list = {
+            'lvl': person.lvl,
+            'money': person.money,
+            'energy': person.now_energy,
+            'hp_castle': castle.now_hp
+        }
+
+        return JsonResponse(person_list)
 
 
 class Tap(APIView):
     def post(self, request, *args, **kwargs):
-        data = []
         money = self.request.data['money']
         energy = self.request.data['energy']
         hp = self.request.data['hp']
@@ -60,11 +56,8 @@ class Tap(APIView):
         castle.now_hp = int(hp)
         person.save(update_fields=['now_energy', 'money'])
         castle.save()
-        person_list = {'tg_id': person.tg_id, 'money': person.money, 'energy': person.now_energy}
-        castle_list = {'hp': castle.now_hp, 'lvl': castle.lvl}
-        data.append({'person': person_list,
-                     'castle': castle_list})
-        return Response(data)
+        data = {'money': person.money, 'energy': person.now_energy, 'hp': castle.now_hp, }
+        return JsonResponse(data)
 
 
 class Upgrade_army_bring_money(APIView):
@@ -76,7 +69,7 @@ class Upgrade_army_bring_money(APIView):
             person.money -= 100
             person.save()
             warrior.save()
-            return Response({'Respose': 'Успешно!'}, status=status.HTTP_200_OK)
+            return Response({'money': person.money}, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Недостаточно денег'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -90,6 +83,49 @@ class Upgrade_army_speed(APIView):
             warrior.speed -= 5
             person.save()
             warrior.save()
-            return Response({'Respose': 'Успешно!'}, status=status.HTTP_200_OK)
+            return Response({'money': person.money}, status=status.HTTP_200_OK)
         else:
             return Response({'Error': 'Недостаточно денег'}, status=status.HTTP_403_FORBIDDEN)
+
+
+class Url_Picture(APIView):
+    def get(self, request, name, format=None):
+        try:
+            photo = Picture.objects.get(name=name)
+        except Picture.DoesNotExist:
+            return HttpResponse(status=404)
+
+        mime_type, _ = mimetypes.guess_type(photo.image.path)
+        response = HttpResponse(photo.image, content_type=mime_type)
+        return response
+
+
+class Takin_Army(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            person = Person.objects.get(tg_id=self.request.data['tg_id'])
+        except Person.DoesNotExist:
+            return HttpResponse(status=404)
+        army_list = [
+            {
+                'id_warior': i.id_person,
+                'name': i.name,
+                'speed': i.speed,
+                'bring_money': i.bring_money,
+                'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace('/takin_army', '')
+            }
+            for i in person.army.all()
+        ]
+        return JsonResponse(army_list, safe=False)
+
+
+class Takin_Castle(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            person = Person.objects.get(tg_id=self.request.data['tg_id'])
+            castle = Castle.objects.get(person=person)
+        except Person.DoesNotExist:
+            return HttpResponse(status=404)
+
+        data = {'lvl': castle.lvl, 'hp': castle.now_hp}
+        return JsonResponse(data)
