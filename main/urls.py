@@ -15,7 +15,7 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-app_name = "task"
+app_name = "main"
 
 urlpatterns = [
     path('main_info/', MainPage.as_view(), name='main_info'),
