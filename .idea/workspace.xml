@@ -1619,6 +1619,16 @@
       <change afterPath="$PROJECT_DIR$/../redis-7.2.1/utils/tracking_collisions.c" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../redis-7.2.1/utils/whatisdoing.sh" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../social_network" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/signals.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/signals.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/media/media/белый.png" beforeDir="false" afterPath="$PROJECT_DIR$/media/media/white.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/media/media/красный.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/media/media/red.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/media/media/синий.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/media/media/blue.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mysite/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/mysite/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/supervisord.conf" beforeDir="false" afterPath="$PROJECT_DIR$/supervisord.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/telegram.py" beforeDir="false" afterPath="$PROJECT_DIR$/telegram.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1651,7 +1661,7 @@
   &quot;keyToString&quot;: {
     &quot;Python.telegram.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;front__end&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;last_opened_file_path&quot;: &quot;/home/dima_tolshin/PycharmProjects/Wars&quot;
   }
 }</component>
@@ -1692,7 +1702,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-babbdf50b680-746f403e7f0c-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.15989.155" />
+        <option value="bundled-python-sdk-975db3bf15a3-31b6be0877a2-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-241.18034.82" />
       </set>
     </attachedChunks>
   </component>

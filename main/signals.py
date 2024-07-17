@@ -17,7 +17,7 @@ def my_changed_enegry(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=Castle)
 def my_changed_hp_castle(sender, instance, created, **kwargs):
-    if instance.now_hp == 0:
+    if instance.now_hp == instance.start_hp:
         instance.lvl += 1
         instance.start_hp = int(instance.start_hp * 1.2)
         instance.now_hp = instance.start_hp

@@ -24,7 +24,7 @@ async def command_start_handler(message: Message) -> None:
             [
                 InlineKeyboardButton(
                     text='Играть',
-                    web_app=WebAppInfo(url=f'https://docs.aiogram.dev/en/latest/'),
+                    web_app=WebAppInfo(url=f'http://5.101.50.99/'),
                 )
             ]
         ]

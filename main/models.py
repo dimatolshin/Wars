@@ -6,8 +6,8 @@ class Person(models.Model):
     money = models.IntegerField(default=0)
     start_energy = models.IntegerField(default=100)
     now_energy = models.IntegerField(default=100)
-    name = models.CharField(unique=True, max_length=100)
-    tg_id = models.BigIntegerField()
+    name = models.CharField(max_length=100)
+    tg_id = models.BigIntegerField(unique=True)
     army = models.ManyToManyField('Army', related_name='person', null=True, blank=True)
 
     def __str__(self):
@@ -18,7 +18,7 @@ class Castle(models.Model):
     person = models.OneToOneField(Person, related_name='castle', on_delete=models.CASCADE)
     lvl = models.IntegerField(default=1)
     start_hp = models.IntegerField(default=100000)
-    now_hp = models.IntegerField(default=100000)
+    now_hp = models.IntegerField(default=0)
 
     def __str__(self):
         return f'Игрок:{self.person.pk}, lvl:{self.lvl}, hp:{self.now_hp}'
@@ -36,7 +36,7 @@ class Army(models.Model):
     image = models.ForeignKey(Picture, on_delete=models.SET_NULL, related_name='army', null=True, blank=True)
     id_person = models.IntegerField(default=1)
     name = models.CharField(max_length=100)
-    speed = models.IntegerField(default=1)
+    speed = models.IntegerField(default=15)
     bring_money = models.IntegerField(default=1)
     energy = models.IntegerField(default=1)
 

@@ -25,20 +25,22 @@ class MainPage(APIView):
         except Person.DoesNotExist:
             person = Person.objects.create(tg_id=self.request.data['tg_id'], name=self.request.data['name'])
             castle = Castle.objects.create(person=person)
-            army1 = Army.objects.create(name='Красный', speed=100, image=Picture.objects.get(name='красный'),
+            army1 = Army.objects.create(name='red', speed=7, bring_money=1, image=Picture.objects.get(name='red'),
                                         id_person=1)
-            army2 = Army.objects.create(name='Синий', bring_money=5, speed=100, image=Picture.objects.get(name='синий'),
+            army2 = Army.objects.create(name='blue', bring_money=5, speed=12, image=Picture.objects.get(name='blue'),
                                         id_person=2)
-            army3 = Army.objects.create(name='Белый', bring_money=10, speed=100,
-                                        image=Picture.objects.get(name='белый'), id_person=3)
+            army3 = Army.objects.create(name='white', bring_money=10, speed=15,
+                                        image=Picture.objects.get(name='white'), id_person=3)
             person.army.add(army1, army2, army3)
             person.save()
 
         person_list = {
             'lvl': person.lvl,
             'money': person.money,
-            'energy': person.now_energy,
-            'hp_castle': castle.now_hp
+            'energy_now': person.now_energy,
+            'energy_start': person.start_energy,
+            'hp_castle_now': castle.now_hp,
+            'hp_castle_start': castle.start_hp,
         }
 
         return JsonResponse(person_list)
