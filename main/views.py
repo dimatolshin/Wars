@@ -12,7 +12,6 @@ import base64
 from django.http import HttpResponse
 import mimetypes
 
-
 def encode_image_to_base64(image_field):
     return base64.b64encode(image_field.read()).decode('utf-8')
 
