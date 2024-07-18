@@ -19,6 +19,10 @@ def my_changed_enegry(sender, instance, created, **kwargs):
 def my_changed_hp_castle(sender, instance, created, **kwargs):
     if instance.now_hp == instance.start_hp:
         instance.lvl += 1
+        instance.person.lvl = instance.lvl
+        instance.person.start_energy += 500
+        instance.person.now_energy += 500
         instance.start_hp = int(instance.start_hp * 1.2)
         instance.now_hp = instance.start_hp
+        instance.person.save()
         instance.save()

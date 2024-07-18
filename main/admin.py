@@ -16,6 +16,12 @@ class CastleAdmin(admin.ModelAdmin):
 class ArmyAdmin(admin.ModelAdmin):
     pass
 
+
 @admin.register(Picture)
 class PictureAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Statistics_Army)
+class Statistics_Army_Admin(admin.ModelAdmin):
     pass

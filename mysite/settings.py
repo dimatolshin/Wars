@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_celery_results',
     'django_celery_beat',
+    'corsheaders',
 
 ]
 
@@ -52,8 +53,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
+CORS_ALLOWED_ORIGINS = ["http://5.101.50.99"]
 ROOT_URLCONF = 'mysite.urls'
 
 TEMPLATES = [
@@ -121,7 +124,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'statfic']
+STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
