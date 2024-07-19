@@ -147,7 +147,7 @@ class Takin_Army(APIView):
                 'price_speed': i.statistics.price_speed,
                 'lvl_bring_money': i.statistics.lvl_bring_money,
                 'price_bring_money': i.statistics.price_bring_money,
-                'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace('/takin_army', '')
+                'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(f'/takin_army/{person.tg_id}', '')
             }
             for i in person.army.all()
         ]
