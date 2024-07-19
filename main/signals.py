@@ -11,8 +11,8 @@ def my_changed_enegry(sender, instance, created, **kwargs):
     if update_fields and 'now_energy' in update_fields:
         task_id = f'energy_task_{instance.id}'
         if not cache.get(task_id):
-            cache.set(task_id, 'in_progress', timeout=600 * 5)
-            energy_task.apply_async((instance.id,), countdown=5)
+            cache.set(task_id, 'in_progress', timeout=60000 * 5)
+            energy_task.apply_async((instance.id,), countdown=1)
 
 
 @receiver(post_save, sender=Castle)

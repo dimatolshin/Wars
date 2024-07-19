@@ -18,12 +18,12 @@ def encode_image_to_base64(image_field):
 
 
 class MainPage(APIView):
-    def post(self, request, *args, **kwargs):
+    def get(self, request, tg_id, name):
         try:
-            person = Person.objects.get(tg_id=self.request.data['tg_id'])
+            person = Person.objects.get(tg_id=tg_id)
             castle = Castle.objects.get(person=person)
         except Person.DoesNotExist:
-            person = Person.objects.create(tg_id=self.request.data['tg_id'], name=self.request.data['name'])
+            person = Person.objects.create(tg_id=tg_id, name=name)
             castle = Castle.objects.create(person=person)
             statistics1 = Statistics_Army.objects.create(price_speed=50, price_bring_money=50)
             statistics2 = Statistics_Army.objects.create(price_speed=100, price_bring_money=100)
@@ -147,7 +147,8 @@ class Takin_Army(APIView):
                 'price_speed': i.statistics.price_speed,
                 'lvl_bring_money': i.statistics.lvl_bring_money,
                 'price_bring_money': i.statistics.price_bring_money,
-                'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(f'/takin_army/{person.tg_id}', '')
+                'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
+                    f'/takin_army/{person.tg_id}', '')
             }
             for i in person.army.all()
         ]

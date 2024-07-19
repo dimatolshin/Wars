@@ -18,7 +18,7 @@ schema_view = get_schema_view(
 app_name = "main"
 
 urlpatterns = [
-    path('main_info/', MainPage.as_view(), name='main_info'),
+    path('main_info/<int:tg_id>/<str:name>/', MainPage.as_view(), name='main_info'),
     path('tap-tap/', Tap.as_view(), name='tap-tap'),
     path('upgrade_army_bring_money/', Upgrade_army_bring_money.as_view(), name='upgrade_army_bring_money'),
     path('upgrade_army_speed/', Upgrade_army_speed.as_view(), name='upgrade_army_speed'),
