@@ -132,9 +132,9 @@ class Url_Picture(APIView):
 
 
 class Takin_Army(APIView):
-    def post(self, request, *args, **kwargs):
+    def get(self, request, tg_id: int):
         try:
-            person = Person.objects.get(tg_id=self.request.data['tg_id'])
+            person = Person.objects.get(tg_id=tg_id)
         except Person.DoesNotExist:
             return HttpResponse(status=404)
         army_list = [
@@ -152,5 +152,3 @@ class Takin_Army(APIView):
             for i in person.army.all()
         ]
         return JsonResponse(army_list, safe=False)
-
-

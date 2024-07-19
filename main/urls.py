@@ -23,7 +23,7 @@ urlpatterns = [
     path('upgrade_army_bring_money/', Upgrade_army_bring_money.as_view(), name='upgrade_army_bring_money'),
     path('upgrade_army_speed/', Upgrade_army_speed.as_view(), name='upgrade_army_speed'),
     path('media/media/<str:name>/', Url_Picture.as_view(), name='url_picture'),
-    path('takin_army/', Takin_Army.as_view(), name='Takin_Army'),
+    path('takin_army/<int:tg_id>/', Takin_Army.as_view(), name='Takin_Army'),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
