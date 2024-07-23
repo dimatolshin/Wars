@@ -1,3 +1,7 @@
+from aiogram import Bot
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+from asgiref.sync import sync_to_async, async_to_sync
 from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import render
@@ -11,6 +15,8 @@ import json
 import base64
 from django.http import HttpResponse
 import mimetypes
+from aiogram.utils.deep_linking import create_start_link, decode_payload
+import logging
 
 
 def encode_image_to_base64(image_field):
@@ -57,7 +63,7 @@ class Tap(APIView):
         person_id = self.request.data['tg_id']
         person = Person.objects.get(tg_id=person_id)
         castle = Castle.objects.get(person=person)
-        person.money = int(money)
+        person.money += int(money)
         person.now_energy = energy
         castle.now_hp = int(hp)
         person.save(update_fields=['now_energy', 'money'])
@@ -153,3 +159,71 @@ class Takin_Army(APIView):
             for i in person.army.all()
         ]
         return JsonResponse(army_list, safe=False)
+
+
+class AddBonus(APIView):
+    def post(self, request):
+        referrer_id = request.data.get('referrer_id')
+        new_user_id = request.data.get('new_user_id')
+        new_user_name = request.data.get('new_user_name')
+
+        if not referrer_id or not new_user_id:
+            return Response({'status': 'error', 'message': 'Referrer ID and New User ID are required'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            referrer = Person.objects.get(tg_id=referrer_id)
+            new_person, created = Person.objects.get_or_create(tg_id=new_user_id, defaults={'name': new_user_name})
+            Castle.objects.create(person=new_person)
+            friendship1, created = FriendShip.objects.get_or_create(me=referrer)
+            if not created:
+                friendship1.friends.add(new_person)
+            friendship2, created = FriendShip.objects.get_or_create(me=new_person)
+            friendship2.friends.add(referrer)
+            referrer.money += 1000000
+            referrer.save()
+            return Response({'status': 'success', 'message': f'Бонусы начислены пользователю {referrer_id}.'})
+        except Person.DoesNotExist:
+            return Response({'status': 'error', 'message': 'Referrer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+TOKEN = '7474449523:AAFLTVA2qqS15MaI_PBW7kX3gfoxoKJGKNQ'
+
+# Initialize Bot instance with default bot properties which will be passed to all API calls
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+
+class GenerateRefLinkView(APIView):
+    def get(self, request, tg_id: int):
+        try:
+            # Использование async_to_sync для вызова асинхронной функции
+            link = async_to_sync(create_start_link)(bot, str(tg_id), encode=True)
+        except Exception as e:
+            logging.error(f"Error generating referral link: {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({'ref_link': link}, status=status.HTTP_200_OK)
+
+#
+#
+# class HandleStartView(APIView):
+#     async def post(self, request):
+#         args = request.data.get('args')
+#         if not args:
+#             return Response({'error': 'args are required'}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         try:
+#             referrer_id = decode_payload(args)
+#             new_user_id = request.data.get('user_id')
+#             if not new_user_id:
+#                 return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+#
+#             add_bonus(referrer_id)
+#             add_friend(referrer_id, new_user_id)
+#         except Exception as e:
+#             logging.error(f"Error handling start: {e}")
+#             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#
+#         return Response({
+#             'message': f'You have been referred by user ID {referrer_id}. They have been rewarded, and you have been added as a friend!'
+#         }, status=status.HTTP_200_OK)

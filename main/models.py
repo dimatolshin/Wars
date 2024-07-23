@@ -54,3 +54,12 @@ class Army(models.Model):
 
     def __str__(self):
         return f'Имя:{self.name}, Скорость:{self.speed}, Денег приносит:{self.bring_money}'
+
+
+class FriendShip(models.Model):
+    me = models.OneToOneField(Person, on_delete=models.CASCADE, related_name='friendship_me')
+    friends = models.ManyToManyField(Person, related_name='friends', null=True, blank=True)
+
+    def __str__(self):
+        friends = [i.name for i in self.friends.all()]
+        return f'me : {self.me.name}____friends:{friends}'

@@ -25,3 +25,8 @@ class PictureAdmin(admin.ModelAdmin):
 @admin.register(Statistics_Army)
 class Statistics_Army_Admin(admin.ModelAdmin):
     pass
+
+
+@admin.register(FriendShip)
+class FriendShipAdmin(admin.ModelAdmin):
+    pass
