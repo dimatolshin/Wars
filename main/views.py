@@ -81,6 +81,7 @@ class MainPage(APIView):
             'energy_start': person.start_energy,
             'hp_castle_now': castle.now_hp,
             'hp_castle_start': castle.start_hp,
+            'recharge_energy': person.recharge_energy
         }
 
         return JsonResponse(person_list)
@@ -185,7 +186,8 @@ class Takin_Army(APIView):
             }
             for i in person.army.all()
         ]
-        return JsonResponse(army_list, safe=False)
+
+        return JsonResponse(army_list.sort(key=lambda x: x['id_warrior']), safe=False)
 
 
 # class AddBonus(APIView):
