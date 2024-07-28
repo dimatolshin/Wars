@@ -22,11 +22,8 @@ class PictureAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Statistics_Army)
-class Statistics_Army_Admin(admin.ModelAdmin):
-    pass
 
 
-@admin.register(FriendShip)
-class FriendShipAdmin(admin.ModelAdmin):
+@admin.register(ReferralSystem)
+class ReferralSystemAdmin(admin.ModelAdmin):
     pass

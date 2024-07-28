@@ -6,6 +6,7 @@ class Person(models.Model):
     money = models.IntegerField(default=0)
     start_energy = models.IntegerField(default=500)
     now_energy = models.IntegerField(default=500)
+    recharge_energy = models.IntegerField(default=1)
     name = models.CharField(max_length=100)
     tg_id = models.BigIntegerField(unique=True)
     army = models.ManyToManyField('Army', related_name='person', null=True, blank=True)
@@ -32,34 +33,30 @@ class Picture(models.Model):
         return f'имя: {self.name}'
 
 
-class Statistics_Army(models.Model):
-    lvl_speed = models.IntegerField(default=1)
-    price_speed = models.IntegerField(default=1)
-    lvl_bring_money = models.IntegerField(default=1)
-    price_bring_money = models.IntegerField(default=1)
-
-    def __str__(self):
-        return f'lvl_speed: {self.lvl_speed}, price_speed: {self.price_speed}; lvl_bring_money: {self.lvl_bring_money}, price_bring_money: {self.price_bring_money}'
-
-
 class Army(models.Model):
     image = models.ForeignKey(Picture, on_delete=models.SET_NULL, related_name='army', null=True, blank=True)
     id_person = models.IntegerField(default=1)
     name = models.CharField(max_length=100)
-    speed = models.IntegerField(default=15)
-    bring_money = models.IntegerField(default=1)
+    speed = models.FloatField(default=1.0)
+    damage = models.IntegerField(default=1)
     energy = models.IntegerField(default=1)
-    statistics = models.OneToOneField(Statistics_Army, related_name='army', on_delete=models.CASCADE, null=True,
-                                      blank=True)
+    lvl_speed = models.IntegerField(default=1)
+    price_speed = models.IntegerField(default=1)
+    lvl_damage = models.IntegerField(default=1)
+    price_damage = models.IntegerField(default=1)
+    evolve_lvl = models.IntegerField(default=1)
+    cards = models.IntegerField(default=0)
+    max_lvl_upgrade = models.IntegerField(default=5)
 
     def __str__(self):
-        return f'Имя:{self.name}, Скорость:{self.speed}, Денег приносит:{self.bring_money}'
+        return f'Имя:{self.name}, Скорость:{self.speed}, Урон:{self.damage}, lvl.speed:{self.lvl_speed}, lvl.damage:{self.lvl_damage}'
 
 
-class FriendShip(models.Model):
-    me = models.OneToOneField(Person, on_delete=models.CASCADE, related_name='friendship_me')
-    friends = models.ManyToManyField(Person, related_name='friends', null=True, blank=True)
+class ReferralSystem(models.Model):
+    referral = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='referral')
+    new_person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='new_person')
+    referral_bonus = models.BooleanField(default=True)
+    new_person_bonus = models.BooleanField(default=True)
 
     def __str__(self):
-        friends = [i.name for i in self.friends.all()]
-        return f'me : {self.me.name}____friends:{friends}'
+        return f'me : {self.referral.name}____new_person:{self.new_person.name}'
