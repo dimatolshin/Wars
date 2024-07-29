@@ -200,10 +200,10 @@ class CompleteReferralSystem(APIView):
         info2_exists = ReferralSystem.objects.filter(referral=new_person, new_person=referral).exists()
 
         if info1_exists or info2_exists:
-            return Response({"Error": "Уже есть такая связь"})
+            return Response({"Error": "Данной игрок уже находится у вас в друзьях"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             info = ReferralSystem.objects.create(referral=referral, new_person=new_person)
-            return Response(ReferralSerializer(info).data)
+            return Response({'success': 'Перейдите во кладку друзья и заберите бонус'}, status=status.HTTP_200_OK)
 
 
 class AllFriends(APIView):
@@ -246,8 +246,7 @@ class TakinBonus(APIView):
             return Response(
                 {f'Congratulations': "Вы получили бонус с вразмере '10000' за то что присоединились к игре"})
         else:
-            return Response({'Error': "Вы уже получали бонус"})
-
+            return Response({'Error': "Вы уже получали бонус"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GenerateRefLinkView(APIView):
