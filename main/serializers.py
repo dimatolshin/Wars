@@ -23,3 +23,9 @@ class ArmySerializer(serializers.ModelSerializer):
     class Meta:
         model = Army
         fields = '__all__'
+
+
+class ReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReferralSystem
+        fields = '__all__'

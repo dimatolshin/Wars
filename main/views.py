@@ -18,6 +18,7 @@ from django.http import HttpResponse
 import mimetypes
 from aiogram.utils.deep_linking import create_start_link, decode_payload
 import logging
+from django.shortcuts import get_object_or_404
 
 file_path = os.path.join(os.path.dirname(__file__), 'info_for_db.json')
 with open(file_path, 'r') as file:
@@ -186,40 +187,73 @@ class Takin_Army(APIView):
             }
             for i in person.army.all()
         ]
+        army_list.sort(key=lambda x: x['id_warrior'])
+        return JsonResponse(army_list, safe=False)
 
-        return JsonResponse(army_list.sort(key=lambda x: x['id_warrior']), safe=False)
+
+class CompleteReferralSystem(APIView):
+    def get(self, request, new_id: int, referral_id: int):
+        new_person = get_object_or_404(Person, tg_id=new_id)
+        referral = get_object_or_404(Person, tg_id=referral_id)
+
+        info1_exists = ReferralSystem.objects.filter(referral=referral, new_person=new_person).exists()
+        info2_exists = ReferralSystem.objects.filter(referral=new_person, new_person=referral).exists()
+
+        if info1_exists or info2_exists:
+            return Response({"Error": "Уже есть такая связь"})
+        else:
+            info = ReferralSystem.objects.create(referral=referral, new_person=new_person)
+            return Response(ReferralSerializer(info).data)
 
 
-# class AddBonus(APIView):
-#     def post(self, request):
-#         referrer_id = request.data.get('referrer_id')
-#         new_user_id = request.data.get('new_user_id')
-#         new_user_name = request.data.get('new_user_name')
-#
-#         if not referrer_id or not new_user_id:
-#             return Response({'status': 'error', 'message': 'Referrer ID and New User ID are required'},
-#                             status=status.HTTP_400_BAD_REQUEST)
-#
-#         try:
-#             referrer = Person.objects.get(tg_id=referrer_id)
-#             new_person, created = Person.objects.get_or_create(tg_id=new_user_id, defaults={'name': new_user_name})
-#             Castle.objects.create(person=new_person)
-#             friendship1, created = FriendShip.objects.get_or_create(me=referrer)
-#             if not created:
-#                 friendship1.friends.add(new_person)
-#             friendship2, created = FriendShip.objects.get_or_create(me=new_person)
-#             friendship2.friends.add(referrer)
-#             referrer.money += 1000000
-#             referrer.save()
-#             return Response({'status': 'success', 'message': f'Бонусы начислены пользователю {referrer_id}.'})
-#         except Person.DoesNotExist:
-#             return Response({'status': 'error', 'message': 'Referrer not found'}, status=status.HTTP_404_NOT_FOUND)
+class AllFriends(APIView):
+    def post(self, request):
+        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+        data = []
+        info = ReferralSystem.objects.filter(referral=person)
+        if info:
+            for i in info:
+                data.append({'name': i.new_person.name,
+                             'lvl': i.new_person.lvl,
+                             'person_id': i.new_person.id,
+                             'referral_system_id': i.id})
+
+        info = ReferralSystem.objects.filter(new_person=person)
+        if info:
+            for i in info:
+                data.append({'name': i.referral.name,
+                             'lvl': i.referral.lvl,
+                             'person_id': i.referral.id,
+                             'referral_system_id': i.id})
+        return Response(data)
+
+
+class TakinBonus(APIView):
+    def post(self, request):
+        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+        system = get_object_or_404(ReferralSystem, id=request.data['referral_system_id'])
+        if system.referral == person and system.referral_bonus == True:
+            person.money += 50000
+            person.save()
+            system.referral_bonus = False
+            system.save()
+            return Response({f'Congratulations': "Вы получили бонус с вразмере '50000' за то что привели друга"})
+        if system.new_person == person and system.new_person_bonus == True:
+            person.money += 10000
+            person.save()
+            system.new_person_bonus = False
+            system.save()
+            return Response(
+                {f'Congratulations': "Вы получили бонус с вразмере '10000' за то что присоединились к игре"})
+        else:
+            return Response({'Error': "Вы уже получали бонус"})
+
 
 
 class GenerateRefLinkView(APIView):
     def get(self, request, tg_id: int):
         try:
-            create_link = f"https://t.me/EggWars_bot/start?startapp={tg_id}"
+            create_link = f"https://t.me/EggWars_bot?start=id_{tg_id}"
         except Exception as e:
             logging.error(f"Error generating referral link: {e}")
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
