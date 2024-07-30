@@ -1,0 +1,1 @@
+import{j as i}from"./index-6babfe49.js";function c(s,a={},n=[]){return[s,...n.filter(Boolean),...Object.entries(a).filter(([t,e])=>!!e).map(([t])=>t)].join(" ")}const m=({isLoading:s,isDisabled:a=s,children:n,className:t="",kind:e="primary",type:o,...r})=>i.jsx("button",{disabled:a,type:o,className:c("btn",{},[t]),"data-kind":e,...r,children:n});export{m as B,c};
