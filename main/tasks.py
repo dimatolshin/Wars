@@ -15,7 +15,7 @@ def energy_task(instance_id):
     task_id = f'energy_task_{instance_id}'
     instance = Person.objects.get(id=instance_id)
     if instance.now_energy < instance.start_energy:
-        instance.now_energy += data["Person"][f"{instance.person.lvl}"]["recharge_energy"]
+        instance.now_energy += data["Person"][f"{instance.lvl}"]["recharge_energy"]
         if instance.now_energy >=instance.start_energy:
             instance.now_energy = instance.start_energy
             instance.save(update_fields=['now_energy', ])
