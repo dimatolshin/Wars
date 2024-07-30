@@ -38,7 +38,6 @@ def my_changed_hp_castle(sender, instance, created, **kwargs):
             )
             return
         instance.person.start_energy = data["Person"][f"{instance.person.lvl}"]["start_energy"]
-        instance.person.now_energy = data["Person"][f"{instance.person.lvl}"]["start_energy"]
         instance.now_hp = abs(instance.now_hp - instance.start_hp)
         instance.start_hp = data["Castle"][f"{instance.lvl}"]["start_hp"]
         instance.person.save()

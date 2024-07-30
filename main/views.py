@@ -74,6 +74,7 @@ class MainPage(APIView):
                 armies.append(army)
 
             person.army.add(*armies)
+            person.my_army.add(armies[0])
             person.save()
         person_list = {
             'lvl': person.lvl,

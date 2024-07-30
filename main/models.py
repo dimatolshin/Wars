@@ -10,6 +10,7 @@ class Person(models.Model):
     name = models.CharField(max_length=100)
     tg_id = models.BigIntegerField(unique=True)
     army = models.ManyToManyField('Army', related_name='person', null=True, blank=True)
+    my_army = models.ManyToManyField('Army', related_name='my_army', null=True, blank=True)
 
     def __str__(self):
         return f'Имя:{self.name}, id:{self.pk}, tg_id:{self.tg_id}'
