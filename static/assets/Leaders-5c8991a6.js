@@ -1,1 +1,0 @@
-import{j as s}from"./index-88c6e5f1.js";import{M as e}from"./ModalRoute-a7b2b172.js";const t="_tes_xu9a1_1",r={tes:t};function n(){return s.jsx(e,{children:s.jsx("div",{className:r.tes,children:"Leaders"})})}export{n as default};

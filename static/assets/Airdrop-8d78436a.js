@@ -1,1 +1,0 @@
-import{j as s}from"./index-313a9a34.js";import{M as t}from"./ModalRoute-9772d02a.js";const r="_tes_xu9a1_1",e={tes:r};function a(){return s.jsx(t,{children:s.jsx("div",{className:e.tes,children:"Airdrop"})})}export{a as default};

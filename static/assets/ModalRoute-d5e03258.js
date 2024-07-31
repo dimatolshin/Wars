@@ -1,1 +1,0 @@
-import{j as o}from"./index-81ef6ee0.js";const e="_modal_w8cis_1",n="_overlay_w8cis_13",a="_content_w8cis_21",s={modal:e,overlay:n,content:a};function l({children:t}){return o.jsx("div",{className:s.modal,children:o.jsx("div",{className:s.overlay,children:o.jsx("div",{className:s.content,children:t})})})}export{l as M};
