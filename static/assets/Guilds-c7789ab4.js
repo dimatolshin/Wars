@@ -1,0 +1,1 @@
+import{j as s}from"./index-eafd020b.js";import{M as t}from"./ModalRoute-72366bec.js";const e="_tes_xu9a1_1",o={tes:e};function a(){return s.jsx(t,{children:s.jsx("div",{className:o.tes,children:"Guilds"})})}export{a as default};
