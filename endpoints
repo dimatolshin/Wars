@@ -1,0 +1,51 @@
+1) Получение  информации о замке    http://5.101.50.99:8000/main/takin_castle/
+Post - запрос (поля для запроса:'tg_id') Ответ: 'lvl':int , 'hp':int
+
+
+2) Получение  информации о армии    http://5.101.50.99:8000/main/takin_army/<int:tg_id>/
+Get - запрос  Ответ: 'id_warrior':int , 'name':str,  'damage':int, 'speed':int,'lvl_damage':int,'lvl_speed':int,'price_damage':int,'price_speed':int,'image' : url
+
+
+3)Улучшение войска (damage)    http://5.101.50.99:8000/main/upgrade_army_bring_money/
+Post - запрос (поля для запроса:'tg_id' , 'id_warrior' - у каждого типа войск есть свой id ) Ответ: 'money': int сколько осталось,lvl_damage - уровень прокачки , damage-урон, price_damage-стоимость улучшения
+
+
+4)Улучшение войска (скорость)   http://5.101.50.99:8000/main/upgrade_army_speed/
+Post - запрос (поля для запроса:'tg_id' , 'id_person' - у каждого типа войск есть свой id ) Ответ: 'money': int сколько осталось, lvl_speed - уровень прокачки , speed-скорость, price_speed-стоимость улучшения
+
+
+5)Основаня информация http://5.101.50.99:8000/main/main_info/<int:tg_id>/<str:name>/
+Get -запрос  Ответ: 'lvl','money-всего','energy_now'-осталось,'energy_now','hp_castle_now' -здоровья замка осталось,'hp_castle_start','recharge_energy'-регенерация энергии в секунду
+
+
+6)клацалка на основную кномпу |"в бой" http://5.101.50.99:8000/main/tap-tap/
+Post - запрос (поля для запроса:'tg_id' ,'hp'-здоровья замка на данный момент, 'energy'-энергия на данный момент,'money'-на данный момент) Ответ: 'money','energy', 'hp'- здоровье замка
+
+
+7)Генерирует реферальную ссылку  http://5.101.50.99:8000/main/generate_link/<int:tg_id>/  (ожидает tg_id)
+Get-запрос Oтвет: link -ссылка с встроенным id реферальщика
+
+
+8)Добавление в друзья   http://5.101.50.99:8000/main/completeReferral/<int:new_id>/<int:referral_id>/  (ожидает new_id - это id нового юзера ,referral_id - это id старого юзера )
+Get-запрос Oтвет: referral - тот кто выслал приглос (старый игрок), new_person - новый игрок, referral_bonus - получал ли старый игрок бонус ( default значение True, если получил то False), new_person_bonus- получал ли новый игрок бонус
+
+
+9)Получение полного списка друзей  http://5.101.50.99:8000/main/all_friends/
+Post- запрос (поля для запроса :'tg_id') Ответ : ('name' -имя друга , 'lvl' -уровень друга, 'person_id'- id нашего юзера, 'referral_system_id'- показывает id связи)
+
+
+10) Получения бонуса http://5.101.50.99:8000/main/taking_bonus/
+Post- запрос (поля для запроса :'tg_id','referral_system_id' ) Ответ : Сообщение об усешном начислении бонуса или об ошибке что бонус уже был получен
+
+
+11) Получения инфы о бонусе http://5.101.50.99:8000/main/info_bonus/<int:tg_id>/
+Get- запрос, Ответ :( ключи:Info_ordinary_bonus,Info_prime_bonus,My_Bonus_Card)
+
+
+12) Показ всех карточек http://5.101.50.99:8000/main/show_cards/
+Post- запрос (поля для запроса :'tg_id' )  Ответ :( warrior name , warrior now_cards , warrior max_cards , lvl, id_warrior ,image)
+
+
+13) Улучшения карт http://5.101.50.99:8000/main/evolve_cards/
+Post- запрос (поля для запроса :tg_id , id_warrior) Ответ :( warrior now_cards , warrior max_cards , lvl, max_lvl_upgrade)
+
