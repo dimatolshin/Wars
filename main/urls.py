@@ -28,7 +28,11 @@ urlpatterns = [
          name='Complete_referral'),
     path('all_friends/', AllFriends.as_view(), name='all_friends'),
     path('taking_bonus/', TakinBonus.as_view(), name='takin_bonus'),
+    path('show_cards/', ShowAllCards.as_view(), name='show_cards'),
+    path('evolve_cards/', EvolveCards.as_view(), name='evolve_cards'),
+    path('info_bonus/<int:tg_id>/', InfoBonus.as_view(), name='info_bonus'),
     path('generate_link/<int:tg_id>/', GenerateRefLinkView.as_view(), name='generate_link'),
+
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

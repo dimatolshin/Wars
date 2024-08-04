@@ -44,7 +44,6 @@ class MainPage(APIView):
                 lvl=data["Person"]["1"]["lvl"],
                 recharge_energy=data["Person"]["1"]["recharge_energy"]
             )
-            print(person.lvl, person.now_energy, person.start_energy, person.recharge_energy)
 
             castle = Castle.objects.create(
                 person=person,
@@ -55,26 +54,32 @@ class MainPage(APIView):
             print(castle.start_hp, castle.now_hp, castle.lvl)
             army_data = data["Army"]
             armies = []
-            for color in ["white", "red", "blue"]:
+            lvl = 0
+            for color in army_data:
+                if army_data[color]["card"]["0"]["cards"] == 0:
+                    lvl = 1
+                else:
+                    lvl = 0
                 army = Army.objects.create(
                     name=army_data[color]["info"]["name"],
                     image=Picture.objects.get(name=army_data[color]["info"]["name"]),
-                    speed=army_data[color]["speed"]["1"]["speed"],
-                    lvl_speed=army_data[color]["speed"]["1"]["lvl_speed"],
-                    price_speed=army_data[color]["speed"]["1"]["price_speed"],
-                    damage=army_data[color]["damage"]["1"]["damage"],
-                    lvl_damage=army_data[color]["damage"]["1"]["lvl_damage"],
-                    price_damage=army_data[color]["damage"]["1"]["price_damage"],
-                    energy=army_data[color]["speed"]["1"]["energy"],
+                    speed=army_data[color]["speed"][f"{lvl}"]["speed"],
+                    lvl_speed=army_data[color]["speed"][f"{lvl}"]["lvl_speed"],
+                    price_speed=army_data[color]["speed"][f"{lvl}"]["price_speed"],
+                    damage=army_data[color]["damage"][f"{lvl}"]["damage"],
+                    lvl_damage=army_data[color]["damage"][f"{lvl}"]["lvl_damage"],
+                    price_damage=army_data[color]["damage"][f"{lvl}"]["price_damage"],
+                    energy=army_data[color]["speed"][f"{lvl}"]["energy"],
                     id_person=army_data[color]["info"]["id_person"],
-                    evolve_lvl=army_data[color]["card"]["1"]["evolve_lvl"],
-                    cards=army_data[color]["card"]["1"]["cards"],
-                    max_lvl_upgrade=army_data[color]["card"]["1"]["max_lvl_upgrade"],
+                    evolve_lvl=lvl,
+                    max_cards=army_data[color]["card"][f"{lvl}"]["cards"],
+                    max_lvl_upgrade=army_data[color]["card"][f"{lvl}"]["max_lvl_upgrade"],
                 )
+                if army.evolve_lvl == 1:
+                    person.my_army.add(army)
                 armies.append(army)
 
             person.army.add(*armies)
-            person.my_army.add(armies[0])
             person.save()
         person_list = {
             'lvl': person.lvl,
@@ -110,7 +115,7 @@ class Upgrade_army_damage(APIView):
     def post(self, request):
         person = Person.objects.get(tg_id=request.data['tg_id'])
         warrior = Army.objects.get(person=person, id_person=request.data['id_warrior'])
-        if person.money >= warrior.price_damage:
+        if person.money >= warrior.price_damage and warrior.lvl_damage <= warrior.max_lvl_upgrade:
             try:
                 next_lvl_damage = data["Army"][f"{warrior.name}"]["damage"][f"{warrior.lvl_damage + 1}"]["lvl_damage"]
                 next_damage = data["Army"][f"{warrior.name}"]["damage"][f"{warrior.lvl_damage + 1}"]["damage"]
@@ -128,14 +133,16 @@ class Upgrade_army_damage(APIView):
             return Response({'money': person.money, 'lvl_damage': warrior.lvl_damage,
                              'damage': warrior.damage, 'price_damage': warrior.price_damage}, status=status.HTTP_200_OK)
         else:
-            return Response({'Error': 'Недостаточно денег'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'Error': 'Улучшения недоступны. Следите за показателем денег и за максимально допустимым уровнем улучшения'},
+                status=status.HTTP_403_FORBIDDEN)
 
 
 class Upgrade_army_speed(APIView):
     def post(self, request):
         person = Person.objects.get(tg_id=request.data['tg_id'])
         warrior = Army.objects.get(person=person, id_person=request.data['id_warrior'])
-        if person.money >= warrior.price_speed:
+        if person.money >= warrior.price_speed and warrior.lvl_speed <= warrior.max_lvl_upgrade:
             try:
                 next_lvl_speed = data["Army"][f"{warrior.name}"]["speed"][f"{warrior.lvl_speed + 1}"]["lvl_speed"]
                 next_speed = data["Army"][f"{warrior.name}"]["speed"][f"{warrior.lvl_speed + 1}"]["speed"]
@@ -152,7 +159,9 @@ class Upgrade_army_speed(APIView):
             return Response({'money': person.money, 'lvl_speed': warrior.lvl_speed,
                              'price_speed': warrior.price_speed}, status=status.HTTP_200_OK)
         else:
-            return Response({'Error': 'Недостаточно денег'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'Error': 'Улучшения недоступны. Следите за показателем денег и за максимально допустимым уровнем улучшения'},
+                status=status.HTTP_403_FORBIDDEN)
 
 
 class Url_Picture(APIView):
@@ -183,10 +192,12 @@ class Takin_Army(APIView):
                 'price_speed': i.price_speed,
                 'lvl_damage': i.lvl_damage,
                 'price_damage': i.price_damage,
+                'cards': i.cards,
+                'max_cards': i.max_cards,
                 'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
                     f'/takin_army/{person.tg_id}', '')
             }
-            for i in person.army.all()
+            for i in person.my_army.all()
         ]
         army_list.sort(key=lambda x: x['id_warrior'])
         return JsonResponse(army_list, safe=False)
@@ -194,17 +205,21 @@ class Takin_Army(APIView):
 
 class CompleteReferralSystem(APIView):
     def get(self, request, new_id: int, referral_id: int):
-        new_person = get_object_or_404(Person, tg_id=new_id)
-        referral = get_object_or_404(Person, tg_id=referral_id)
-
-        info1_exists = ReferralSystem.objects.filter(referral=referral, new_person=new_person).exists()
-        info2_exists = ReferralSystem.objects.filter(referral=new_person, new_person=referral).exists()
-
-        if info1_exists or info2_exists:
-            return Response({"Error": "Данной игрок уже находится у вас в друзьях"}, status=status.HTTP_400_BAD_REQUEST)
+        if new_id == referral_id:
+            return Response({"Error": "Нельзя добавить самого себя в друзья!"}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            info = ReferralSystem.objects.create(referral=referral, new_person=new_person)
-            return Response({'success': 'Перейдите во кладку друзья и заберите бонус'}, status=status.HTTP_200_OK)
+            new_person = get_object_or_404(Person, tg_id=new_id)
+            referral = get_object_or_404(Person, tg_id=referral_id)
+
+            info1_exists = ReferralSystem.objects.filter(referral=referral, new_person=new_person).exists()
+            info2_exists = ReferralSystem.objects.filter(referral=new_person, new_person=referral).exists()
+
+            if info1_exists or info2_exists:
+                return Response({"Error": "Данной игрок уже находится у вас в друзьях"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            else:
+                ReferralSystem.objects.create(referral=referral, new_person=new_person)
+                return Response({'success': 'Перейдите во кладку друзья и заберите бонус'}, status=status.HTTP_200_OK)
 
 
 class AllFriends(APIView):
@@ -217,15 +232,16 @@ class AllFriends(APIView):
                 data.append({'name': i.new_person.name,
                              'lvl': i.new_person.lvl,
                              'person_id': i.new_person.id,
-                             'referral_system_id': i.id})
+                             'referral_system_id': i.id,
+                             'flag': i.new_person_bonus})
 
-        info = ReferralSystem.objects.filter(new_person=person)
         if info:
             for i in info:
                 data.append({'name': i.referral.name,
                              'lvl': i.referral.lvl,
                              'person_id': i.referral.id,
-                             'referral_system_id': i.id})
+                             'referral_system_id': i.id,
+                             'flag': i.referral_bonus})
         return Response(data)
 
 
@@ -234,18 +250,23 @@ class TakinBonus(APIView):
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
         system = get_object_or_404(ReferralSystem, id=request.data['referral_system_id'])
         if system.referral == person and system.referral_bonus == True:
-            person.money += 50000
+            person.money += data["BonusSystem"]["referral"]["ordinary"]["money"]
+            bonus_warrior = get_object_or_404(Army, name="bonus", person=person)
+            bonus_warrior.cards = data["BonusSystem"]["referral"]["ordinary"]["cards"]
+            bonus_warrior.save()
             person.save()
             system.referral_bonus = False
             system.save()
-            return Response({f'Congratulations': "Вы получили бонус с вразмере '50000' за то что привели друга"})
+            return Response({
+                'Congratulations': f'Вы получили бонус с вразмере {data["BonusSystem"]["referral"]["ordinary"]["money"]} монет и {data["BonusSystem"]["referral"]["ordinary"]["cards"]} бонусные карты за то что привели друга'})
         if system.new_person == person and system.new_person_bonus == True:
-            person.money += 10000
+            person.money += data["BonusSystem"]["new_person"]["money"]
             person.save()
             system.new_person_bonus = False
             system.save()
             return Response(
-                {f'Congratulations': "Вы получили бонус с вразмере '10000' за то что присоединились к игре"})
+                {
+                    'Congratulations': f'Вы получили бонус с в размере {data["BonusSystem"]["new_person"]["money"]} монет  за то что присоединились к игре'})
         else:
             return Response({'Error': "Вы уже получали бонус"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -259,3 +280,64 @@ class GenerateRefLinkView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({'ref_link': create_link}, status=status.HTTP_200_OK)
+
+
+class ShowAllCards(APIView):
+    def post(self, request):
+        info = []
+        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+        warriors = person.army.all()
+        for i in warriors:
+            info.append({'name': i.name,
+                         'now_cards': i.cards,
+                         'max_cards': i.max_cards,
+                         'lvl': i.evolve_lvl,
+                         'id_warrior': i.id_person,
+                         'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
+                             f'/show_cards', '')
+                         })
+        return Response(info, status=status.HTTP_200_OK)
+
+
+class EvolveCards(APIView):
+    def post(self, request):
+        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+        warrior = get_object_or_404(Army, id_person=request.data['id_warrior'], person=person)
+        if warrior.cards >= warrior.max_cards:
+            try:
+                next_evolve_lvl = data["Army"][f"{warrior.name}"]["card"][f"{warrior.evolve_lvl + 1}"]["evolve_lvl"]
+                next_max_cards = data["Army"][f"{warrior.name}"]["card"][f"{warrior.evolve_lvl + 1}"]["cards"]
+                next_max_lvl_upgrade = data["Army"][f"{warrior.name}"]["card"][f"{warrior.evolve_lvl + 1}"]["cards"]
+                print(f"lvl:{next_evolve_lvl}, max_cards:{next_max_cards},lvl_upgrade{next_max_lvl_upgrade}")
+            except KeyError:
+                return Response({'Error': 'Это максимальное улучшение'}, status=status.HTTP_400_BAD_REQUEST)
+            warrior.evolve_lvl = next_evolve_lvl
+            warrior.cards -= warrior.max_cards
+            warrior.max_cards = next_max_cards
+            warrior.max_lvl_upgrade = next_max_lvl_upgrade
+            warrior.save()
+            return Response(
+                {'now_cards': warrior.cards, 'max_cards': warrior.max_cards, 'evolve_lvl': warrior.evolve_lvl,
+                 'max_lvl_upgrade': warrior.max_lvl_upgrade}, status=status.HTTP_200_OK)
+        else:
+            return Response({'Error': 'Недостаточно карт'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class InfoBonus(APIView):
+    def get(self, request, tg_id: int):
+        person = get_object_or_404(Person, tg_id=tg_id)
+        warrior = get_object_or_404(Army, name=data["Army"]["bonus"]["info"]["name"], person=person)
+        return Response({"Info_ordinary_bonus":
+                             {'money': data["BonusSystem"]["referral"]["ordinary"]["money"],
+                              'cards': data["BonusSystem"]["referral"]["ordinary"]["cards"]},
+                         "Info_prime_bonus":
+                             {'money': data["BonusSystem"]["referral"]["prime"]["money"],
+                              'cards': data["BonusSystem"]["referral"]["prime"]["cards"]},
+                         "My_Bonus_Card":
+                             {'name': warrior.name,
+                              'now_cards': warrior.cards,
+                              'max_cards': warrior.max_cards,
+                              'evolve_lvl': warrior.evolve_lvl,
+                              'image': request.build_absolute_uri(f'media/media/{warrior.image.name}').replace(
+                                  f'/info_bonus/{person.tg_id}', '')}
+                         })

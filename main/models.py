@@ -47,6 +47,7 @@ class Army(models.Model):
     price_damage = models.IntegerField(default=1)
     evolve_lvl = models.IntegerField(default=1)
     cards = models.IntegerField(default=0)
+    max_cards = models.IntegerField(default=0)
     max_lvl_upgrade = models.IntegerField(default=5)
 
     def __str__(self):
@@ -60,4 +61,4 @@ class ReferralSystem(models.Model):
     new_person_bonus = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'me : {self.referral.name}____new_person:{self.new_person.name}'
+        return f'me : {self.referral.name}____new_person:{self.new_person.name} , id:{self.id}'
