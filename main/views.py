@@ -194,10 +194,11 @@ class Takin_Army(APIView):
                 'price_damage': i.price_damage,
                 'cards': i.cards,
                 'max_cards': i.max_cards,
+                'lvl': i.evolve_lvl,
                 'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
                     f'/takin_army/{person.tg_id}', '')
             }
-            for i in person.my_army.all()
+            for i in person.army.all()
         ]
         army_list.sort(key=lambda x: x['id_warrior'])
         return JsonResponse(army_list, safe=False)
@@ -223,8 +224,8 @@ class CompleteReferralSystem(APIView):
 
 
 class AllFriends(APIView):
-    def post(self, request):
-        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+    def get(self, request, tg_id: int):
+        person = get_object_or_404(Person, tg_id=tg_id)
         data = []
         info = ReferralSystem.objects.filter(referral=person)
         if info:
@@ -282,21 +283,21 @@ class GenerateRefLinkView(APIView):
         return Response({'ref_link': create_link}, status=status.HTTP_200_OK)
 
 
-class ShowAllCards(APIView):
-    def post(self, request):
-        info = []
-        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
-        warriors = person.army.all()
-        for i in warriors:
-            info.append({'name': i.name,
-                         'now_cards': i.cards,
-                         'max_cards': i.max_cards,
-                         'lvl': i.evolve_lvl,
-                         'id_warrior': i.id_person,
-                         'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
-                             f'/show_cards', '')
-                         })
-        return Response(info, status=status.HTTP_200_OK)
+# class ShowAllCards(APIView):
+#     def post(self, request):
+#         info = []
+#         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+#         warriors = person.army.all()
+#         for i in warriors:
+#             info.append({'name': i.name,
+#                          'now_cards': i.cards,
+#                          'max_cards': i.max_cards,
+#                          'lvl': i.evolve_lvl,
+#                          'id_warrior': i.id_person,
+#                          'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
+#                              f'/show_cards', '')
+#                          })
+#         return Response(info, status=status.HTTP_200_OK)
 
 
 class EvolveCards(APIView):
@@ -339,5 +340,5 @@ class InfoBonus(APIView):
                               'max_cards': warrior.max_cards,
                               'evolve_lvl': warrior.evolve_lvl,
                               'image': request.build_absolute_uri(f'media/media/{warrior.image.name}').replace(
-                                  f'/info_bonus/{person.tg_id}', '')}
+                                  f'/info_bonus/{person.tg_id}', ''), }
                          })
