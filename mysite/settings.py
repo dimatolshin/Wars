@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-lx$q0bz=6j8s0x9ik%ye7slfm2^48%1=&_q5ps0$$ra74ujq&&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['5.101.50.99', '127.0.0.1', 'eggswar.com', 'www.eggswar.com']
 
@@ -55,6 +55,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
 
 CORS_ALLOWED_ORIGINS = ["http://5.101.50.99"]
 ROOT_URLCONF = 'mysite.urls'
