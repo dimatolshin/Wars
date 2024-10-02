@@ -1,9 +1,11 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 class Person(models.Model):
     lvl = models.IntegerField(default=1)
     money = models.IntegerField(default=0)
+    crystal = models.IntegerField(default=0)
     start_energy = models.IntegerField(default=500)
     now_energy = models.IntegerField(default=500)
     recharge_energy = models.IntegerField(default=1)
@@ -49,6 +51,8 @@ class Army(models.Model):
     cards = models.IntegerField(default=0)
     max_cards = models.IntegerField(default=0)
     max_lvl_upgrade = models.IntegerField(default=5)
+    can_evolve=models.BooleanField(default=False)
+
 
     def __str__(self):
         return f'Имя:{self.name}, Скорость:{self.speed}, Урон:{self.damage}, lvl.speed:{self.lvl_speed}, lvl.damage:{self.lvl_damage}'
@@ -62,3 +66,28 @@ class ReferralSystem(models.Model):
 
     def __str__(self):
         return f'me : {self.referral.name}____new_person:{self.new_person.name} , id:{self.id}'
+
+
+class Visit(models.Model):
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='visit')
+    date = models.DateField(auto_now_add=True)
+    streak = models.PositiveIntegerField(default=1)
+    week_streak = models.IntegerField(default=1)
+    get_bonus = models.BooleanField(default=False)
+    numbers_list = ArrayField(models.IntegerField(), blank=True, default=list)
+
+    def __str__(self):
+        return f"{self.person.name} - {self.date} Стрик: {self.streak}), Недельный стрик:{self.week_streak}"
+
+
+class PassiveEarning(models.Model):
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='passive_earning')
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=100)
+    image = models.ForeignKey(Picture, on_delete=models.SET_NULL, related_name='passive_earning', null=True, blank=True)
+    price=models.PositiveIntegerField(default=1)
+    profit_in_hour=models.PositiveIntegerField(default=1)
+    cooldown = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.person.name} Имя:{self.name}, цена:{self.price}, прибыль в час:{self.profit_in_hour}"

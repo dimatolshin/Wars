@@ -1,8 +1,5 @@
 import os
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.utils.payload import encode_payload
-from asgiref.sync import sync_to_async, async_to_sync
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from django.shortcuts import render
@@ -51,7 +48,10 @@ class MainPage(APIView):
                 start_hp=data["Castle"]["1"]["start_hp"],
                 now_hp=0
             )
-            print(castle.start_hp, castle.now_hp, castle.lvl)
+            Visit.objects.create(
+                person=person,
+                numbers_list=[int(i) for i in data['Daly_Bonus'] if int(i) > 7]
+            )
             army_data = data["Army"]
             armies = []
             lvl = 0
@@ -236,6 +236,7 @@ class AllFriends(APIView):
                              'referral_system_id': i.id,
                              'flag': i.new_person_bonus})
 
+        info = ReferralSystem.objects.filter(new_person=person)
         if info:
             for i in info:
                 data.append({'name': i.referral.name,
@@ -259,7 +260,7 @@ class TakinBonus(APIView):
             system.referral_bonus = False
             system.save()
             return Response({
-                'Congratulations': f'Вы получили бонус с вразмере {data["BonusSystem"]["referral"]["ordinary"]["money"]} монет и {data["BonusSystem"]["referral"]["ordinary"]["cards"]} бонусные карты за то что привели друга'})
+                'Congratulations': f'Вы получили бонус с в размере {data["BonusSystem"]["referral"]["ordinary"]["money"]} монет и {data["BonusSystem"]["referral"]["ordinary"]["cards"]} бонусные карты за то что привели друга'})
         if system.new_person == person and system.new_person_bonus == True:
             person.money += data["BonusSystem"]["new_person"]["money"]
             person.save()
@@ -283,22 +284,33 @@ class GenerateRefLinkView(APIView):
         return Response({'ref_link': create_link}, status=status.HTTP_200_OK)
 
 
-# class ShowAllCards(APIView):
-#     def post(self, request):
-#         info = []
-#         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
-#         warriors = person.army.all()
-#         for i in warriors:
-#             info.append({'name': i.name,
+class ShowAllCards(APIView):
+    def post(self, request):
+        info = []
+        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+        warriors = person.army.all()
+        for i in warriors:
+            info.append({'lvl': i.evolve_lvl,
+                         'id_warrior': i.id_person,
+                         'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
+                             f'/show_cards', '')
+                         })
+        return Response(info, status=status.HTTP_200_OK)
+
+class ShowCard(APIView):
+    def get(self,request,tg_id,id_warrior):
+        person = get_object_or_404(Person, tg_id=tg_id)
+        warrior=get_object_or_404()
+
+
+
+# info.append({'name': i.name,
 #                          'now_cards': i.cards,
 #                          'max_cards': i.max_cards,
 #                          'lvl': i.evolve_lvl,
 #                          'id_warrior': i.id_person,
 #                          'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
 #                              f'/show_cards', '')
-#                          })
-#         return Response(info, status=status.HTTP_200_OK)
-
 
 class EvolveCards(APIView):
     def post(self, request):
@@ -316,6 +328,7 @@ class EvolveCards(APIView):
             warrior.cards -= warrior.max_cards
             warrior.max_cards = next_max_cards
             warrior.max_lvl_upgrade = next_max_lvl_upgrade
+            warrior.can_evolve = False
             warrior.save()
             return Response(
                 {'now_cards': warrior.cards, 'max_cards': warrior.max_cards, 'evolve_lvl': warrior.evolve_lvl,
@@ -342,3 +355,46 @@ class InfoBonus(APIView):
                               'image': request.build_absolute_uri(f'media/media/{warrior.image.name}').replace(
                                   f'/info_bonus/{person.tg_id}', ''), }
                          })
+
+
+class Check_And_Give_Daly_Bonus(APIView):
+    def post(self, request):
+        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+        today = timezone.now().date()
+        if not person.daly_bonus.get_bonus:
+            prizes = data['Daly_Bonus'][f'{person.vist.week_streak}']
+            for key, item in prizes.items():
+                if key == 'money':
+                    person.money += item
+                elif key == 'crystal':
+                    person.crystal += item
+                elif key == 'energy':
+                    person.now_energy += item
+            person.visit.date = today
+            person.visit.streak += 1
+            person.visit.week_streak += 1
+            person.visit.get_bonus = True
+            person.visit.save()
+            return Response({'response': "Бонус успешно получен "}, status=status.HTTP_200_OK)
+
+        else:
+            return Response({'response': "Вы уже получили бонус сегодня"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Get_Bonus_per_Сommon_Enter(APIView):
+    def get(self, request):
+        person = get_object_or_404(Person, tg_id=request.data['tg_id'])
+        if person.visit.streak in person.visit.numbers_list:
+            prizes = data['Daly_Bonus'][f'{person.visit.streak}']
+            for key, item in prizes.items():
+                if key == 'money':
+                    person.money += item
+                elif key == 'crystal':
+                    person.crystal += item
+                elif key == 'energy':
+                    person.now_energy += item
+            person.visit.numbers_list.remove(person.visit.streak)
+            person.visit.save()
+            return Response({"response": "Бонусы были успешно получены"}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Что то пошло не так'}, status=status.HTTP_400_BAD_REQUEST)

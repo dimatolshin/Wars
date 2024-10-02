@@ -223,5 +223,16 @@
     "new_person": {
       "money": 10000
     }
+  },
+  "Daly_Bonus": {
+    "1": {"money": 50000,"crystal": 500},
+    "2": {"money": 50000},
+    "3": {"money": 50000,"crystal": 500},
+    "4": {"money": 50000},
+    "5": {"money": 50000,"crystal": 500},
+    "6": {"money": 50000},
+    "7": {"money": 50000,"crystal": 500,"energy": 40},
+    "8": {"money": 100000,"crystal": 1000},
+    "16": {"money": 300000,"energy": 100}
   }
 }

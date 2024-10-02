@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Person, Castle
+from .models import *
 from .tasks import energy_task
 import os
 import json
@@ -41,4 +41,24 @@ def my_changed_hp_castle(sender, instance, created, **kwargs):
         instance.now_hp = abs(instance.now_hp - instance.start_hp)
         instance.start_hp = data["Castle"][f"{instance.lvl}"]["start_hp"]
         instance.person.save()
+        instance.save()
+
+
+@receiver(post_save, sender=Visit)
+def add_bonus_in_list(sender, instance, created, **kwargs):
+    bonus = next((int(i) for i in data['Daly_Bonus'] if int(i) > 7 and int(i) == instance.streak), None)
+    if bonus is not None:
+        instance.numbers_list.append(bonus)
+    if instance.streak > int(max(data['Daly_Bonus'])):
+        instance.streak = 1
+        instance.numbers_list = [int(i) for i in data['Daly_Bonus'] if int(i) > 7]
+    if instance.week_streak > 7:
+        instance.week_streak = 1
+    instance.save()
+
+
+@receiver(post_save, sender=Army)
+def change_evolve_field(sender, instance, created, **kwargs):
+    if instance.cards >= instance.max_cards:
+        instance.can_evolve = True
         instance.save()

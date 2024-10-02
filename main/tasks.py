@@ -10,7 +10,7 @@ with open(file_path, 'r') as file:
     data = json.load(file)
 
 
-@shared_task
+@shared_task(acks_late=True,reject_on_worker_lost=True)
 def energy_task(instance_id):
     task_id = f'energy_task_{instance_id}'
     instance = Person.objects.get(id=instance_id)
@@ -24,3 +24,8 @@ def energy_task(instance_id):
         energy_task.apply_async((instance.id,), countdown=1)
     else:
         cache.delete(task_id)
+
+
+@shared_task(acks_late=True,reject_on_worker_lost=True)
+def reset_daily_bonus():
+    Person.objects.filter(daly_bonus__get_bonus=True).update(daly_bonus__get_bonus=False)

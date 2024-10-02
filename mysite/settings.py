@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -136,6 +137,15 @@ CELERY_RESULT_BACKEND = 'django-db'
 CELERY_IMPORTS = ('main.tasks',)
 broker_connection_retry_on_startup = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_BEAT_SCHEDULE = {
+    'reset_daily_bonus': {
+        'task': 'main.tasks.reset_daily_bonus',
+        'schedule': crontab(hour=0, minute=0),
+    },
+}
+
 
 CACHES = {
     "default": {

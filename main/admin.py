@@ -22,8 +22,16 @@ class PictureAdmin(admin.ModelAdmin):
     pass
 
 
-
-
 @admin.register(ReferralSystem)
 class ReferralSystemAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Visit)
+class VisitAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(PassiveEarning)
+class PassiveEarningAdmin(admin.ModelAdmin):
     pass
