@@ -62,7 +62,8 @@ MIDDLEWARE = [
 SECURE_PROXY_SSL_HEADER = None
 SECURE_SSL_REDIRECT = False
 
-CORS_ALLOWED_ORIGINS = ["http://5.101.50.99", 'http://127.0.0.1']
+CORS_ALLOWED_ORIGINS = ["https://5.101.50.99", "http://127.0.0.1", "https://eggswar.com", "https://www.eggswar.com"]
+CSRF_TRUSTED_ORIGINS = ["https://5.101.50.99", "http://127.0.0.1", "https://eggswar.com", "https://www.eggswar.com"]
 ROOT_URLCONF = 'mysite.urls'
 
 TEMPLATES = [
