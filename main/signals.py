@@ -54,7 +54,12 @@ def add_bonus_in_list(sender, instance, created, **kwargs):
         instance.numbers_list = [int(i) for i in data['Daly_Bonus'] if int(i) > 7]
     if instance.week_streak > 7:
         instance.week_streak = 1
-    instance.save()
+
+    Visit.objects.filter(pk=instance.pk).update(
+        numbers_list=instance.numbers_list,
+        streak=instance.streak,
+        week_streak=instance.week_streak
+    )
 
 
 @receiver(post_save, sender=Army)

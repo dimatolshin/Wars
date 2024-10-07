@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.utils import timezone
 
 
 class Person(models.Model):
@@ -91,3 +94,66 @@ class PassiveEarning(models.Model):
 
     def __str__(self):
         return f"{self.person.name} Имя:{self.name}, цена:{self.price}, прибыль в час:{self.profit_in_hour}"
+
+
+class Task(models.Model):
+    """Задания для выполнения"""
+    TASK_TYPE_CHOICES = [
+        ('one_time', 'Одноразовое'),
+        ('accumulative', 'Накопительное'),
+    ]
+
+    CONDITION_TYPE_CHOICES = [
+        ('units', 'Выпустить N unit'),
+        ('upgrades', 'Сделать N upgrade'),
+        ('destroy_castle', 'Разорить N замок'),
+        ('spend_money', 'Потратить N монет'),
+        ('invite_friends', 'Пригласить N друга/друзей'),
+    ]
+
+    name = models.CharField(max_length=50, verbose_name='Название задачи', default='')
+    picture = models.ForeignKey(Picture, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Картинка')
+    dop_name = models.CharField(max_length=50, blank=True, null=True, verbose_name='Доп. название задачи')
+    description = models.CharField(max_length=255, verbose_name='Описание задачи', default='')
+    task_type = models.CharField(max_length=20, choices=TASK_TYPE_CHOICES, default='one_time')
+    condition_type = models.CharField(max_length=20, blank=True, null=True, choices=CONDITION_TYPE_CHOICES,
+                                      verbose_name='Тип условия')
+    condition_value = models.IntegerField(default=0,
+                                          verbose_name='Значение условия')  # Указываем количество для CONDITION_TYPE_CHOICES
+    condition_now = models.IntegerField(default=0,
+                                        verbose_name='Текущее значение условия') # Указываем текущее достижение у юзера для CONDITION_TYPE_CHOICES
+    reward_currency = models.IntegerField(default=0, verbose_name='Награда (монет)')
+    chest = models.BooleanField(default=False, verbose_name='Награда (сундук)')
+    is_active = models.BooleanField(default=True, verbose_name="Активность задачи")
+
+
+class PlayerTask(models.Model):
+    """Связываем задачи с игроком"""
+    person = models.ForeignKey('Person', on_delete=models.CASCADE, related_name='task_player', verbose_name='Игрок')
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='player_tasks', verbose_name='Задача')
+    start_time = models.DateTimeField(null=True, blank=True, verbose_name='Время начала')
+    completed = models.BooleanField(default=False, verbose_name='Выполнено')
+    add_flag = models.BooleanField(default=False, verbose_name='Доп. флаг')
+
+    def check_completion(self):
+        """Проверка завершения задачи для одноразовых задач с задержкой 1 час"""
+        if not self.completed and self.task.task_type == 'one_time':
+            if self.start_time and timezone.now() >= self.start_time + timedelta(minutes=1):
+                self.completed = True
+                self.save()
+                # добавить игроку монеты за выполнение задачи
+        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'units':
+            pass
+        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'upgrades':
+            pass
+        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'destroy_castle':
+            pass
+        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'spend_money':
+            pass
+        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'invite_friends':
+            pass
+
+    def start_task_player(self):
+        """При вызове представления, задаём полю значение начало выполнение задачи"""
+        self.start_time = timezone.now()
+        self.save()
