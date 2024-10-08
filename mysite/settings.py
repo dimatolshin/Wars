@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-lx$q0bz=6j8s0x9ik%ye7slfm2^48%1=&_q5ps0$$ra74ujq&&'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['5.101.50.99', '127.0.0.1', 'eggswar.com', 'www.eggswar.com']
 
@@ -57,10 +57,13 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = None
+SECURE_SSL_REDIRECT = False
 
-CORS_ALLOWED_ORIGINS = ["http://5.101.50.99"]
+CORS_ALLOWED_ORIGINS = ["https://5.101.50.99", "http://127.0.0.1", "https://eggswar.com", "https://www.eggswar.com"]
+CSRF_TRUSTED_ORIGINS = ["https://5.101.50.99", "http://127.0.0.1", "https://eggswar.com", "https://www.eggswar.com"]
 ROOT_URLCONF = 'mysite.urls'
 
 TEMPLATES = [
@@ -90,6 +93,8 @@ DATABASES = {
         'NAME': 'wars',
         'USER': 'wars',
         'PASSWORD': '951003QWERTY',
+        # "USER": "postgres",
+        # "PASSWORD": "Selsel375298945462",
         'HOST': 'localhost',
         'PORT': 5432,
     }
@@ -128,7 +133,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+# STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

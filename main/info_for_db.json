@@ -233,6 +233,9 @@
     "6": {"money": 50000},
     "7": {"money": 50000,"crystal": 500,"energy": 40},
     "8": {"money": 100000,"crystal": 1000},
-    "16": {"money": 300000,"energy": 100}
+    "12": {"money": 333,"crystal": 333},
+    "16": {"money": 300000,"energy": 100},
+    "22": {"money": 444,"crystal": 444},
+    "30": {"money": 555,"crystal": 555}
   }
 }

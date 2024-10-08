@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from .models import *
 from .serializers import *
 from django.core import serializers
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 import base64
@@ -61,7 +61,7 @@ class MainPage(APIView):
                     lvl = 0
                 army = Army.objects.create(
                     name=army_data[color]["info"]["name"],
-                    image=Picture.objects.get(name=army_data[color]["info"]["name"]),
+                    image=Picture.objects.filter(name__startswith=name).first(),
                     speed=army_data[color]["speed"][f"{lvl}"]["speed"],
                     lvl_speed=army_data[color]["speed"][f"{lvl}"]["lvl_speed"],
                     price_speed=army_data[color]["speed"][f"{lvl}"]["price_speed"],
@@ -94,6 +94,17 @@ class MainPage(APIView):
 
 
 class Tap(APIView):
+    """
+        Эндпоинт для обновления данных пользователя и его замка.
+
+        Принимает POST-запрос с данными о деньгах, энергии и здоровье замка, а также идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `money`: Количество денег, которое нужно добавить к текущему балансу пользователя.
+        - `energy`: Количество энергии, которое нужно установить для пользователя.
+        - `hp`: Количество здоровья, которое нужно установить для замка пользователя.
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def post(self, request, *args, **kwargs):
         money = self.request.data['money']
         energy = self.request.data['energy']
@@ -111,10 +122,19 @@ class Tap(APIView):
 
 
 class Upgrade_army_damage(APIView):
+    """
+        Эндпоинт для улучшения урона армии пользователя.
+
+        Принимает POST-запрос с данными об идентификаторе пользователя и идентификаторе воина.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `id_warrior`: Уникальный идентификатор воина (юнита).
+    """
     def post(self, request):
         person = Person.objects.get(tg_id=request.data['tg_id'])
         warrior = Army.objects.get(person=person, id_person=request.data['id_warrior'])
-        if person.money >= warrior.price_damage and warrior.lvl_damage <= warrior.max_lvl_upgrade:
+        if person.money >= warrior.price_damage and warrior.lvl_damage < warrior.max_lvl_upgrade:
             try:
                 next_lvl_damage = data["Army"][f"{warrior.name}"]["damage"][f"{warrior.lvl_damage + 1}"]["lvl_damage"]
                 next_damage = data["Army"][f"{warrior.name}"]["damage"][f"{warrior.lvl_damage + 1}"]["damage"]
@@ -138,10 +158,19 @@ class Upgrade_army_damage(APIView):
 
 
 class Upgrade_army_speed(APIView):
+    """
+        Эндпоинт для улучшения скорости армии пользователя.
+
+        Принимает POST-запрос с данными об идентификаторе пользователя и идентификаторе воина.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `id_warrior`: Уникальный идентификатор воина (юнита).
+    """
     def post(self, request):
         person = Person.objects.get(tg_id=request.data['tg_id'])
         warrior = Army.objects.get(person=person, id_person=request.data['id_warrior'])
-        if person.money >= warrior.price_speed and warrior.lvl_speed <= warrior.max_lvl_upgrade:
+        if person.money >= warrior.price_speed and warrior.lvl_speed < warrior.max_lvl_upgrade:
             try:
                 next_lvl_speed = data["Army"][f"{warrior.name}"]["speed"][f"{warrior.lvl_speed + 1}"]["lvl_speed"]
                 next_speed = data["Army"][f"{warrior.name}"]["speed"][f"{warrior.lvl_speed + 1}"]["speed"]
@@ -164,6 +193,14 @@ class Upgrade_army_speed(APIView):
 
 
 class Url_Picture(APIView):
+    """
+        Эндпоинт для получения изображения по его имени.
+
+        Принимает GET-запрос с именем изображения.
+
+        Необходимые переменные для корректной работы:
+        - `name`: Имя изображения, которое нужно получить.
+    """
     def get(self, request, name, format=None):
         try:
             photo = Picture.objects.get(name=name)
@@ -176,6 +213,14 @@ class Url_Picture(APIView):
 
 
 class Takin_Army(APIView):
+    """
+        Эндпоинт для получения списка армии пользователя.
+
+        Принимает GET-запрос с идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def get(self, request, tg_id: int):
         try:
             person = Person.objects.get(tg_id=tg_id)
@@ -194,7 +239,7 @@ class Takin_Army(APIView):
                 'cards': i.cards,
                 'max_cards': i.max_cards,
                 'lvl': i.evolve_lvl,
-                'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
+                'image': request.build_absolute_uri(f'media/{i.image.name}').replace(
                     f'/takin_army/{person.tg_id}', '')
             }
             for i in person.army.all()
@@ -204,6 +249,15 @@ class Takin_Army(APIView):
 
 
 class CompleteReferralSystem(APIView):
+    """
+        Эндпоинт для завершения реферальной системы.
+
+        Принимает GET-запрос с идентификатором нового пользователя и идентификатором реферала.
+
+        Необходимые переменные для корректной работы:
+        - `new_id`: Уникальный идентификатор нового пользователя в Telegram.
+        - `referral_id`: Уникальный идентификатор реферала в Telegram.
+    """
     def get(self, request, new_id: int, referral_id: int):
         if new_id == referral_id:
             return Response({"Error": "Нельзя добавить самого себя в друзья!"}, status=status.HTTP_400_BAD_REQUEST)
@@ -223,6 +277,14 @@ class CompleteReferralSystem(APIView):
 
 
 class AllFriends(APIView):
+    """
+        Эндпоинт для получения списка друзей пользователя.
+
+        Принимает GET-запрос с идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def get(self, request, tg_id: int):
         person = get_object_or_404(Person, tg_id=tg_id)
         data = []
@@ -247,6 +309,15 @@ class AllFriends(APIView):
 
 
 class TakinBonus(APIView):
+    """
+        Эндпоинт для получения бонуса за реферальную систему.
+
+        Принимает POST-запрос с идентификатором пользователя и идентификатором реферальной системы.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `referral_system_id`: Уникальный идентификатор реферальной системы.
+    """
     def post(self, request):
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
         system = get_object_or_404(ReferralSystem, id=request.data['referral_system_id'])
@@ -273,6 +344,14 @@ class TakinBonus(APIView):
 
 
 class GenerateRefLinkView(APIView):
+    """
+        Эндпоинт для генерации реферальной ссылки.
+
+        Принимает GET-запрос с идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def get(self, request, tg_id: int):
         try:
             create_link = f"https://t.me/EggWars_bot?start=id_{tg_id}"
@@ -284,10 +363,18 @@ class GenerateRefLinkView(APIView):
 
 
 class ShowAllCards(APIView):
+    """
+        Эндпоинт для отображения всех карт пользователя.
+
+        Принимает POST-запрос с идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def post(self, request):
         info = []
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
-        warriors = person.army.all()
+        warriors = person.my_army.all()
         for i in warriors:
             info.append({'lvl': i.evolve_lvl,
                          'id_warrior': i.id_person,
@@ -296,22 +383,17 @@ class ShowAllCards(APIView):
                          })
         return Response(info, status=status.HTTP_200_OK)
 
-class ShowCard(APIView):
-    def get(self,request,tg_id,id_warrior):
-        person = get_object_or_404(Person, tg_id=tg_id)
-        warrior=get_object_or_404()
-
-
-
-# info.append({'name': i.name,
-#                          'now_cards': i.cards,
-#                          'max_cards': i.max_cards,
-#                          'lvl': i.evolve_lvl,
-#                          'id_warrior': i.id_person,
-#                          'image': request.build_absolute_uri(f'media/media/{i.image.name}').replace(
-#                              f'/show_cards', '')
 
 class EvolveCards(APIView):
+    """
+        Эндпоинт для эволюции карт.
+
+        Принимает POST-запрос с идентификатором пользователя и идентификатором воина.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `id_warrior`: Уникальный идентификатор воина.
+    """
     def post(self, request):
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
         warrior = get_object_or_404(Army, id_person=request.data['id_warrior'], person=person)
@@ -337,6 +419,14 @@ class EvolveCards(APIView):
 
 
 class InfoBonus(APIView):
+    """
+        Эндпоинт для получения информации о бонусах.
+
+        Принимает GET-запрос с идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def get(self, request, tg_id: int):
         person = get_object_or_404(Person, tg_id=tg_id)
         warrior = get_object_or_404(Army, name=data["Army"]["bonus"]["info"]["name"], person=person)
@@ -357,6 +447,14 @@ class InfoBonus(APIView):
 
 
 class Check_And_Give_Daly_Bonus(APIView):
+    """
+        Эндпоинт для проверки и выдачи ежедневного бонуса.
+
+        Принимает POST-запрос с идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def post(self, request):
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
         today = timezone.now().date()
@@ -374,13 +472,27 @@ class Check_And_Give_Daly_Bonus(APIView):
             person.visit.week_streak += 1
             person.visit.get_bonus = True
             person.visit.save()
-            return Response({'response': "Бонус успешно получен "}, status=status.HTTP_200_OK)
+            # Добавляем информацию о бонусах на каждый день
+            daily_bonuses = data['Daly_Bonus']
+            response_data = {
+                'response': "Бонус успешно получен",
+                'daily_bonuses': daily_bonuses
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
 
         else:
             return Response({'response': "Вы уже получили бонус сегодня"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Get_Bonus_per_Сommon_Enter(APIView):
+    """
+        Эндпоинт для получения бонуса за общее количество входов.
+
+        Принимает GET-запрос с идентификатором пользователя.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    """
     def get(self, request):
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
         if person.visit.streak in person.visit.numbers_list:
@@ -394,6 +506,64 @@ class Get_Bonus_per_Сommon_Enter(APIView):
                     person.now_energy += item
             person.visit.numbers_list.remove(person.visit.streak)
             person.visit.save()
-            return Response({"response": "Бонусы были успешно получены"}, status=status.HTTP_200_OK)
+            # Добавляем информацию о бонусах
+            daily_bonuses = data['Daly_Bonus']
+            response_data = {
+                'response': "Бонус успешно получен",
+                'daily_bonuses': daily_bonuses
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Что то пошло не так'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TaskPlayerDetailView(APIView):
+    """Информация о задачах и их статусе у игрока"""
+
+    def get(self, request, tg_id, dop_name=None):
+        """Получаем информацию о всех задачах или об одной"""
+        person = get_object_or_404(Person, tg_id=tg_id)
+        if dop_name:
+            tasks = PlayerTask.objects.filter(person=person, task__dop_name=dop_name)
+        else:
+            tasks = PlayerTask.objects.filter(person=person).order_by('completed', 'id')
+
+        # Проверяем, что tasks является queryset'ом
+        if not tasks.exists():
+            return Response({"detail": "Задачи не найдены"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PlayerTaskSerializer(tasks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, tg_id, dop_name):
+        """Проверяем прошло ли 30 минут что бы задача считалась выполненная"""
+        if tg_id and dop_name:
+            person = get_object_or_404(Person, tg_id=tg_id)
+            tasks = PlayerTask.objects.filter(person=person, task__dop_name=dop_name)
+            task = tasks.first()
+            serializer = PlayerTaskSerializer(task, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                task.check_completion()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'tg_id и dop_name обязательные поля'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StartTaskView(APIView):
+    """Запуск таймера задачи после перехода на ссылку"""
+    def post(self, request, tg_id, dop_name):
+        """Запуск таймера после перехода на ссылку"""
+        person = get_object_or_404(Person, tg_id=tg_id)
+        tasks = PlayerTask.objects.filter(person=person, task__dop_name=dop_name)
+        task = tasks.first()
+        if task.completed:
+            return Response({"error": "Задача уже завершена."}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PlayerTaskSerializer(task, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            task.start_task_player()  # Запуск таймера выполнения задачи
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
