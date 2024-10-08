@@ -13,7 +13,6 @@ import json
 import base64
 from django.http import HttpResponse
 import mimetypes
-from aiogram.utils.deep_linking import create_start_link, decode_payload
 import logging
 from django.shortcuts import get_object_or_404
 
