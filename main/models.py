@@ -1,8 +1,15 @@
+import json
+import os
 from datetime import timedelta
 
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
+
+
+file_path = os.path.join(os.path.dirname(__file__), 'info_for_db.json')
+with open(file_path, 'r') as file:
+    data = json.load(file)
 
 
 class Person(models.Model):
@@ -16,6 +23,11 @@ class Person(models.Model):
     tg_id = models.BigIntegerField(unique=True)
     army = models.ManyToManyField('Army', related_name='person', null=True, blank=True)
     my_army = models.ManyToManyField('Army', related_name='my_army', null=True, blank=True)
+    units_produced = models.IntegerField(default=0, verbose_name='Выпущено юнитов')  # Добавил в class Tap(APIView)
+    upgrades_made = models.IntegerField(default=0, verbose_name='Сделано апгрейдов')  # class Upgrade_army_damage(APIView) и class Upgrade_army_speed(APIView) и class EvolveCards(APIView)
+    castles_destroyed = models.IntegerField(default=0, verbose_name='Разорено замков')  # @receiver(post_save, sender=Castle)
+    money_spent = models.IntegerField(default=0, verbose_name='Потрачено монет')  # class Upgrade_army_damage(APIView) и class Upgrade_army_speed(APIView)
+    friends_invited = models.IntegerField(default=0, verbose_name='Приглашено друзей')  # class AllFriends(APIView):
 
     def __str__(self):
         return f'Имя:{self.name}, id:{self.pk}, tg_id:{self.tg_id}'
@@ -134,24 +146,79 @@ class PlayerTask(models.Model):
     start_time = models.DateTimeField(null=True, blank=True, verbose_name='Время начала')
     completed = models.BooleanField(default=False, verbose_name='Выполнено')
     add_flag = models.BooleanField(default=False, verbose_name='Доп. флаг')
+    current_level = models.IntegerField(default=1, verbose_name='Текущий уровень многоразовой задачи')
+
+    def check_task_completion(self, condition_type, current_level_data, produced_value, reward_currency):
+        if produced_value >= current_level_data["condition_value"]:
+            self.person.money += reward_currency
+            self.person.save(update_fields=['money'])
+            self.current_level += 1
+            # Проверяем, существует ли следующий уровень
+            next_level_data = next(
+                (level for level in data["PlayerTask"][condition_type] if level["level"] == self.current_level), None
+            )
+            if next_level_data is None:
+                self.completed = True  # Задание завершено, если следующего уровня нет
+                self.save()
 
     def check_completion(self):
         """Проверка завершения задачи для одноразовых задач с задержкой 1 час"""
         if not self.completed and self.task.task_type == 'one_time':
             if self.start_time and timezone.now() >= self.start_time + timedelta(minutes=1):
                 self.completed = True
+                self.start_time = None
                 self.save()
-                # добавить игроку монеты за выполнение задачи
-        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'units':
-            pass
-        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'upgrades':
-            pass
-        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'destroy_castle':
-            pass
-        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'spend_money':
-            pass
-        elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'invite_friends':
-            pass
+                self.person.money += 30000
+                self.person.save(update_fields=['money'])
+
+        elif not self.completed and self.task.task_type == 'accumulative':
+            current_level_data = None
+
+            if self.task.condition_type == 'units':
+                current_level_data = next(
+                    (level for level in data["PlayerTask"]["units"] if level["level"] == self.current_level), None)
+                self.check_task_completion("units", current_level_data, self.person.units_produced,
+                                           current_level_data["reward_currency"])
+
+            elif self.task.condition_type == 'upgrades':
+                current_level_data = next(
+                    (level for level in data["PlayerTask"]["upgrades"] if level["level"] == self.current_level), None)
+                self.check_task_completion("upgrades", current_level_data, self.person.upgrades_made,
+                                           current_level_data["reward_currency"])
+
+            elif self.task.condition_type == 'destroy_castle':
+                current_level_data = next(
+                    (level for level in data["PlayerTask"]["destroy_castle"] if level["level"] == self.current_level), None)
+                self.check_task_completion("destroy_castle", current_level_data, self.person.castles_destroyed,
+                                           current_level_data["reward_currency"])
+
+            elif self.task.condition_type == 'spend_money':
+                current_level_data = next(
+                    (level for level in data["PlayerTask"]["spend_money"] if level["level"] == self.current_level), None)
+                self.check_task_completion("spend_money", current_level_data, self.person.money_spent,
+                                           current_level_data["reward_currency"])
+
+            elif self.task.condition_type == 'invite_friends':
+                current_level_data = next(
+                    (level for level in data["PlayerTask"]["invite_friends"] if level["level"] == self.current_level), None)
+                self.check_task_completion("invite_friends", current_level_data, self.person.friends_invited,
+                                           current_level_data["reward_currency"])
+
+                # elif not self.completed and self.task.task_type == 'accumulative' and self.task.condition_type == 'upgrades':
+                #     # Получаем данные о текущем уровне многоразовой задачи
+                #     current_level_data = next(
+                #         (level for level in data["PlayerTask"]["upgrades"] if level["level"] == self.current_level), None)
+                #     if current_level_data and self.person.upgrades_made >= current_level_data["condition_value"]:
+                #         self.person.money += current_level_data["reward_currency"]
+                #         self.person.save(update_fields=['money'])
+                #         # Увеличиваем уровень текущей задачи
+                #         self.current_level += 1
+                #         # Проверяем, существует ли следующий уровень
+                #         next_level_data = next(
+                #             (level for level in data["PlayerTask"]["units"] if level["level"] == self.current_level), None)
+                #         if next_level_data is None:
+                #             self.completed = True  # Задание завершено, если следующего уровня нет
+                #             self.save()
 
     def start_task_player(self):
         """При вызове представления, задаём полю значение начало выполнение задачи"""

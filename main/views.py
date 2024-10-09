@@ -87,7 +87,12 @@ class MainPage(APIView):
             'energy_start': person.start_energy,
             'hp_castle_now': castle.now_hp,
             'hp_castle_start': castle.start_hp,
-            'recharge_energy': person.recharge_energy
+            'recharge_energy': person.recharge_energy,
+            'units_produced': person.units_produced,
+            'upgrades_made': person.upgrades_made,
+            'castles_destroyed': person.castles_destroyed,
+            'money_spent': person.money_spent,
+            'friends_invited': person.friends_invited
         }
 
         return JsonResponse(person_list)
@@ -114,6 +119,7 @@ class Tap(APIView):
         castle = Castle.objects.get(person=person)
         person.money += int(money)
         person.now_energy = energy
+        person.units_produced += energy
         castle.now_hp = int(hp)
         person.save(update_fields=['now_energy', 'money'])
         castle.save()
@@ -144,6 +150,8 @@ class Upgrade_army_damage(APIView):
                 return Response({'Error': 'Это максимальное улучшение'}, status=status.HTTP_400_BAD_REQUEST)
 
             person.money -= warrior.price_damage
+            person.upgrades_made += 1
+            person.money_spent += warrior.price_damage
             warrior.lvl_damage = next_lvl_damage
             warrior.damage = next_damage
             warrior.price_damage = next_price_damage
@@ -179,6 +187,8 @@ class Upgrade_army_speed(APIView):
             except KeyError:
                 return Response({'Error': 'Это максимальное улучшение'}, status=status.HTTP_400_BAD_REQUEST)
             person.money -= warrior.price_speed
+            person.upgrades_made += 1
+            person.money_spent += warrior.price_speed
             warrior.lvl_speed = next_lvl_speed
             warrior.speed = next_speed
             warrior.price_speed = next_price_speed
@@ -289,6 +299,8 @@ class AllFriends(APIView):
         person = get_object_or_404(Person, tg_id=tg_id)
         data = []
         info = ReferralSystem.objects.filter(referral=person)
+        person.friends_invited = info.count()
+        person.save()
         if info:
             for i in info:
                 data.append({'name': i.new_person.name,
@@ -405,6 +417,7 @@ class EvolveCards(APIView):
                 print(f"lvl:{next_evolve_lvl}, max_cards:{next_max_cards},lvl_upgrade{next_max_lvl_upgrade}")
             except KeyError:
                 return Response({'Error': 'Это максимальное улучшение'}, status=status.HTTP_400_BAD_REQUEST)
+            person.upgrades_made += 1
             warrior.evolve_lvl = next_evolve_lvl
             warrior.cards -= warrior.max_cards
             warrior.max_cards = next_max_cards

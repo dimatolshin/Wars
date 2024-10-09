@@ -35,3 +35,13 @@ class VisitAdmin(admin.ModelAdmin):
 @admin.register(PassiveEarning)
 class PassiveEarningAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(PlayerTask)
+class PlayerTaskAdmin(admin.ModelAdmin):
+    pass

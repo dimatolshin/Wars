@@ -237,5 +237,32 @@
     "16": {"money": 300000,"energy": 100},
     "22": {"money": 444,"crystal": 444},
     "30": {"money": 555,"crystal": 555}
+  },
+  "PlayerTask": {
+  "units": [
+    {"level": 1, "condition_value": 10, "reward_currency": 100},
+    {"level": 2, "condition_value": 20, "reward_currency": 200},
+    {"level": 3, "condition_value": 30, "reward_currency": 300}
+  ],
+  "upgrades": [
+    {"level": 1, "condition_value": 1, "reward_currency": 50},
+    {"level": 2, "condition_value": 2, "reward_currency": 100},
+    {"level": 3, "condition_value": 3, "reward_currency": 150}
+  ],
+  "destroy_castle": [
+    {"level": 1, "condition_value": 1, "reward_currency": 500},
+    {"level": 2, "condition_value": 2, "reward_currency": 1000},
+    {"level": 3, "condition_value": 3, "reward_currency": 1500}
+  ],
+  "spend_money": [
+    {"level": 1, "condition_value": 10000, "reward_currency": 100},
+    {"level": 2, "condition_value": 20000, "reward_currency": 200},
+    {"level": 3, "condition_value": 30000, "reward_currency": 300}
+  ],
+  "invite_friends": [
+    {"level": 1, "condition_value": 1, "reward_currency": 500},
+    {"level": 2, "condition_value": 2, "reward_currency": 1000},
+    {"level": 3, "condition_value": 3, "reward_currency": 1500}
+  ]
   }
 }
