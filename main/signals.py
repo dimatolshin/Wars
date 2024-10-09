@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import *
@@ -37,6 +38,7 @@ def my_changed_hp_castle(sender, instance, created, **kwargs):
                 f"Ошибка:Вы достигли макимального уровня прокачки !"
             )
             return
+        instance.person.castles_destroyed += 1
         instance.person.start_energy = data["Person"][f"{instance.person.lvl}"]["start_energy"]
         instance.now_hp = abs(instance.now_hp - instance.start_hp)
         instance.start_hp = data["Castle"][f"{instance.lvl}"]["start_hp"]
@@ -67,3 +69,14 @@ def change_evolve_field(sender, instance, created, **kwargs):
     if instance.cards >= instance.max_cards:
         instance.can_evolve = True
         instance.save()
+
+
+@receiver(post_save, sender=Task)
+def assign_task_to_all_players(sender, instance, created, **kwargs):
+    """При создании новой задачи, назначаем её всем игрокам."""
+    if created:
+        # Используем транзакцию для гарантии целостности данных
+        with transaction.atomic():
+            persons = Person.objects.all()
+            for person in persons:
+                PlayerTask.objects.create(person=person, task=instance)
