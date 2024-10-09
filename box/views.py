@@ -1,0 +1,142 @@
+import json
+import os
+import random
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from main.models import Person, Army
+from .models import Box
+
+
+class OpenBoxView(generics.GenericAPIView):
+    """
+        Эндпоинт для открытия сундука и получения наград.
+
+        Принимает POST-запрос с идентификатором пользователя (tg_id).
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+
+        Возвращает:
+        - `currency_received`: Количество полученных монет.
+        - `card_count`: Общее количество полученных карт.
+        - `cards_received`: Словарь с количеством полученных карт каждого типа.
+    """
+
+    def post(self, request, tg_id):
+        # Получаем персонажа
+        person = Person.objects.get(tg_id=tg_id)
+        chest = Box.objects.get(id=1)
+
+        # Генерация валюты
+        currency_amount = random.randint(chest.currency_min, chest.currency_max)
+        person.money += currency_amount
+
+        # Генерация карточек персонажей
+        card_count = random.randint(chest.card_count_min, chest.card_count_max)
+        cards_received = {
+            'white': 0,
+            'blue': 0,
+            'red': 0
+        }
+
+        # Вероятности для карточек
+        card_types = ['white', 'blue', 'red']
+        probabilities = [0.7, 0.29, 0.01]  # Вероятности для каждого типа карты
+
+        for _ in range(card_count):
+            chosen_card_type = random.choices(card_types, weights=probabilities, k=1)[0]
+            cards_received[chosen_card_type] += 1  # Увеличиваем счетчик выпавших карт этого типа
+
+        # Обновляем количество карт для каждого типа в армии игрока
+        for card_type, count in cards_received.items():
+            if count > 0:
+                # Ищем армию по названию типа карты
+                army = person.my_army.filter(name=card_type).first()
+                if army:
+                    army.cards += count  # Увеличиваем количество карт
+                    army.save()
+
+        # Сохранение изменений пользователя
+        person.save()
+
+        # Возвращаем ответ с полученными наградами
+        return Response({
+            "currency_received": currency_amount,
+            "card_count": card_count,
+            "cards_received": cards_received
+        })
+
+
+# # Путь к файлу с данными
+# file_path = os.path.join(os.path.dirname(__file__), 'info_for_db.json')
+# with open(file_path, 'r') as file:
+#     data = json.load(file)
+#
+#
+# class OpenBoxView(generics.GenericAPIView):
+#
+#     def post(self, request, tg_id):
+#         # Получаем персонажа
+#         person = Person.objects.get(tg_id=tg_id)
+#         chest = Box.objects.get(id=1)
+#
+#         # Генерация валюты
+#         currency_amount = random.randint(chest.currency_min, chest.currency_max)
+#         person.money += currency_amount
+#
+#         # Генерация карточек персонажей
+#         card_count = random.randint(chest.card_count_min, chest.card_count_max)
+#         cards_received = {
+#             'white': 0,
+#             'blue': 0,
+#             'red': 0
+#         }
+#
+#         # Вероятности для карточек
+#         card_types = ['white', 'blue', 'red']
+#         probabilities = [0.7, 0.29, 0.01]  # Вероятности для каждого типа карты
+#
+#         for _ in range(card_count):
+#             chosen_card_type = random.choices(card_types, weights=probabilities, k=1)[0]
+#             cards_received[chosen_card_type] += 1  # Увеличиваем счетчик выпавших карт этого типа
+#
+#         # Обновляем количество карт для каждого типа в армии игрока
+#         for card_type, count in cards_received.items():
+#             if count > 0:
+#                 # Ищем армию по названию типа карты
+#                 army = person.my_army.filter(name=card_type).first()
+#
+#                 # Если армия найдена, увеличиваем количество карт
+#                 if army:
+#                     army.cards += count
+#                 else:
+#                     # Если армии нет, создаём новую с параметрами из JSON
+#                     army_data = data["Army"][card_type]
+#                     army = Army.objects.create(
+#                         person=person,
+#                         name=army_data['info']['name'],
+#                         speed=army_data['speed']['1']['speed'],  # Пример: начальный уровень скорости
+#                         damage=army_data['damage']['1']['damage'],  # Пример: начальный уровень урона
+#                         cards=count
+#                     )
+#
+#                 # Обновляем уровень карты в зависимости от количества
+#                 card_info = data["Army"][card_type]["card"]
+#                 for evolve_lvl, evolve_data in card_info.items():
+#                     if army.cards >= evolve_data["cards"]:
+#                         army.evolve_lvl = evolve_lvl
+#                         army.max_lvl_upgrade = evolve_data["max_lvl_upgrade"]
+#
+#                 # Сохраняем обновленную армию
+#                 army.save()
+#
+#         # Сохранение изменений персонажа
+#         person.save()
+#
+#         # Возвращаем ответ с полученными наградами
+#         return Response({
+#             "currency_received": currency_amount,
+#             "card_count": card_count,
+#             "cards_received": cards_received
+#         })
