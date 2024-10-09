@@ -62,7 +62,7 @@ class MainPage(APIView):
                     lvl = 0
                 army = Army.objects.create(
                     name=army_data[color]["info"]["name"],
-                    image=Picture.objects.filter(name__startswith=name).first(),
+                    image=Picture.objects.filter(name=army_data[color]["info"]["name"]).first(),
                     speed=army_data[color]["speed"][f"{lvl}"]["speed"],
                     lvl_speed=army_data[color]["speed"][f"{lvl}"]["lvl_speed"],
                     price_speed=army_data[color]["speed"][f"{lvl}"]["price_speed"],
