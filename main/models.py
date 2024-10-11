@@ -19,6 +19,7 @@ class Person(models.Model):
     start_energy = models.IntegerField(default=500)
     now_energy = models.IntegerField(default=500)
     recharge_energy = models.IntegerField(default=1)
+    last_update_time_energy=models.DateTimeField(null=True, blank=True,verbose_name='Время для вычисления энергия за время афк')
     name = models.CharField(max_length=100)
     tg_id = models.BigIntegerField(unique=True)
     army = models.ManyToManyField('Army', related_name='person', null=True, blank=True)
@@ -45,15 +46,14 @@ class Castle(models.Model):
 
 class Picture(models.Model):
     name = models.CharField(max_length=40)
-    image = models.ImageField(null=False, blank=False, upload_to='media')
+    image = models.ImageField(null=False, blank=False, upload_to='')
 
     def __str__(self):
-        return f'имя: {self.name}'
+        return f'имя: {self.name} : {self.image}'
 
 
 class Army(models.Model):
-    image = models.ForeignKey(Picture, on_delete=models.SET_NULL, related_name='army', null=True, blank=True)
-    id_person = models.IntegerField(default=1)
+    id_warrior = models.IntegerField(default=1)
     name = models.CharField(max_length=100)
     speed = models.FloatField(default=1.0)
     damage = models.IntegerField(default=1)
@@ -67,6 +67,7 @@ class Army(models.Model):
     max_cards = models.IntegerField(default=0)
     max_lvl_upgrade = models.IntegerField(default=5)
     can_evolve=models.BooleanField(default=False)
+    image_url = models.URLField(max_length=200, null=True, blank=True)
 
 
     def __str__(self):

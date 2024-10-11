@@ -1,46 +1,37 @@
 from django.urls import path, include
+
+from . import views
 from .views import *
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
-
-schema_view = get_schema_view(
-    openapi.Info(
-        title="API Documentation",
-        default_version='v1',
-        description="API documentation for my project",
-        # ...
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
+from django.views.decorators.csrf import csrf_exempt
 
 app_name = "main"
 
 urlpatterns = [
-    path('main_info/<int:tg_id>/<str:name>/', MainPage.as_view(), name='main_info'),
-    path('tap-tap/', Tap.as_view(), name='tap-tap'),
-    path('upgrade_army_bring_money/', Upgrade_army_damage.as_view(), name='upgrade_army_bring_money'),
-    path('upgrade_army_speed/', Upgrade_army_speed.as_view(), name='upgrade_army_speed'),
-    path('media/<str:name>/', Url_Picture.as_view(), name='url_picture'),
-    path('takin_army/<int:tg_id>/', Takin_Army.as_view(), name='Takin_Army'),
-    path('completeReferral/<int:new_id>/<int:referral_id>/', CompleteReferralSystem.as_view(),
-         name='Complete_referral'),
-    path('all_friends/<int:tg_id>/', AllFriends.as_view(), name='all_friends'),
-    path('taking_bonus/', TakinBonus.as_view(), name='takin_bonus'),
-    path('evolve_cards/', EvolveCards.as_view(), name='evolve_cards'),
-    path('info_bonus/<int:tg_id>/', InfoBonus.as_view(), name='info_bonus'),
-    path('all_show_cards/', ShowAllCards.as_view(), name='all_cards'),
-    path('evolve_cards/', EvolveCards.as_view(), name='evo_cards'),
-    path('info_bonus/<int:tg_id>/', InfoBonus.as_view(), name='info_bonus'),
-    path('check_and_give_daly_bonus/', Check_And_Give_Daly_Bonus.as_view(), name='check_and_give_daly_bonus'),
-    path('get_bonus_per_common_enter/', Get_Bonus_per_Сommon_Enter.as_view(), name='get_bonus_per_common_enter'),
-
-    path('task/<int:tg_id>/<str:dop_name>/', TaskPlayerDetailView.as_view(), name='task-player-detail'),
-    path('task/<int:tg_id>/<str:dop_name>/start/', StartTaskView.as_view(), name='task-player-start'),
+    path('main_info/<int:tg_id>/<str:name>/', csrf_exempt(views.main_info), name='main_info'),
+    path('tap-tap/', csrf_exempt(views.tap_tap), name='tap-tap'),
+    path('count_energy/<int:tg_id>/', csrf_exempt(views.count_energy), name='count_energy'),
 
 
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('upgrade_army_bring_money/', csrf_exempt(views.upgrade_army_damage), name='upgrade_army_damage'),
+    path('upgrade_army_speed/', csrf_exempt(views.upgrade_army_speed), name='upgrade_army_speed'),
+    path('takin_army/<int:tg_id>/', csrf_exempt(views.takin_army), name='Takin_Army'),
+    path('evolve_cards/',csrf_exempt(views.evolve_cards), name='evolve_cards'),
+
+    path('completeReferral/<int:new_id>/<int:referral_id>/', csrf_exempt(views.complete_referral_system)),
+    path('takin_referral_bonus/', csrf_exempt(views.takin_referral_bonus), name='takin_bonus'),
+    path('all_friends/<int:tg_id>/', csrf_exempt(views.all_friends), name='all_friends'),
+    path('generate_ref_link/<int:tg_id>/',csrf_exempt(views.generate_ref_link_view), name='Create link'),
+
+
+    # path('check_and_give_daly_bonus/', Check_And_Give_Daly_Bonus.as_view(), name='check_and_give_daly_bonus'),
+    # path('get_bonus_per_common_enter/', Get_Bonus_per_Сommon_Enter.as_view(), name='get_bonus_per_common_enter'),
+    #
+    # path('media/<str:name>/', Url_Picture.as_view(), name='url_picture'),
+
+    # path('task/<int:tg_id>/<str:dop_name>/', TaskPlayerDetailView.as_view(), name='task-player-detail'),
+    # path('task/<int:tg_id>/<str:dop_name>/start/', StartTaskView.as_view(), name='task-player-start'),
 
 ]

@@ -164,3 +164,10 @@ CELERY_CACHE_BACKEND = 'django-cache'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1',
+    'http://localhost',
+]
+
+SWAGGER_ROOT_URL = CSRF_TRUSTED_ORIGINS[0]
