@@ -62,7 +62,7 @@ class MainPage(APIView):
                     lvl = 0
                 army = Army.objects.create(
                     name=army_data[color]["info"]["name"],
-                    image=Picture.objects.filter(name__startswith=name).first(),
+                    image=Picture.objects.filter(name=army_data[color]["info"]["name"]).first(),
                     speed=army_data[color]["speed"][f"{lvl}"]["speed"],
                     lvl_speed=army_data[color]["speed"][f"{lvl}"]["lvl_speed"],
                     price_speed=army_data[color]["speed"][f"{lvl}"]["price_speed"],
@@ -532,10 +532,25 @@ class Get_Bonus_per_Сommon_Enter(APIView):
 
 
 class TaskPlayerDetailView(APIView):
-    """Информация о задачах и их статусе у игрока"""
+    """
+        Информация о задачах и их статусе у игрока.
+
+        Принимает GET-запрос с идентификатором пользователя (tg_id) и необязательным параметром dop_name.
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `dop_name`: (Опционально) Дополнительное имя задачи для фильтрации.
+
+        Возвращает:
+        - Список задач и их статусы.
+    """
 
     def get(self, request, tg_id, dop_name=None):
-        """Получаем информацию о всех задачах или об одной"""
+        """
+            Получаем информацию о всех задачах или об одной.
+            Если указан `dop_name`, возвращает информацию о конкретной задаче.
+            В противном случае возвращает информацию о всех задачах пользователя.
+        """
         person = get_object_or_404(Person, tg_id=tg_id)
         if dop_name:
             tasks = PlayerTask.objects.filter(person=person, task__dop_name=dop_name)
@@ -550,7 +565,16 @@ class TaskPlayerDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, tg_id, dop_name):
-        """Проверяем прошло ли 30 минут что бы задача считалась выполненная"""
+        """
+            Проверяем прошло ли 30 минут, чтобы задача считалась выполненной.
+
+            Необходимые переменные для корректной работы:
+            - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+            - `dop_name`: Дополнительное имя задачи для фильтрации.
+
+            Возвращает:
+            - Информацию о задаче после обновления.
+        """
         if tg_id and dop_name:
             person = get_object_or_404(Person, tg_id=tg_id)
             tasks = PlayerTask.objects.filter(person=person, task__dop_name=dop_name)
@@ -565,9 +589,25 @@ class TaskPlayerDetailView(APIView):
 
 
 class StartTaskView(APIView):
-    """Запуск таймера задачи после перехода на ссылку"""
+    """
+        Запуск таймера задачи после перехода на ссылку.
+
+        Принимает POST-запрос с идентификатором пользователя (tg_id) и дополнительным именем задачи (dop_name).
+
+        Необходимые переменные для корректной работы:
+        - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `dop_name`: Дополнительное имя задачи для фильтрации.
+
+        Возвращает:
+        - Информацию о задаче после запуска таймера.
+    """
     def post(self, request, tg_id, dop_name):
-        """Запуск таймера после перехода на ссылку"""
+        """
+            Запуск таймера после перехода на ссылку.
+
+            Если задача уже завершена, возвращает ошибку.
+            В противном случае запускает таймер выполнения задачи.
+        """
         person = get_object_or_404(Person, tg_id=tg_id)
         tasks = PlayerTask.objects.filter(person=person, task__dop_name=dop_name)
         task = tasks.first()

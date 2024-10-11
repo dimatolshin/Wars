@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'corsheaders',
+    'box.apps.BoxConfig',
 
 ]
 
@@ -95,7 +96,8 @@ DATABASES = {
         'PASSWORD': '951003QWERTY',
         # "USER": "postgres",
         # "PASSWORD": "Selsel375298945462",
-        'HOST': 'localhost',
+        "HOST": "localhost",
+        # 'HOST': '5.101.50.99',
         'PORT': 5432,
     }
 }
