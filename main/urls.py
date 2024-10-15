@@ -36,6 +36,7 @@ urlpatterns = [
     path('check_and_give_daly_bonus/', Check_And_Give_Daly_Bonus.as_view(), name='check_and_give_daly_bonus'),
     path('get_bonus_per_common_enter/', Get_Bonus_per_Сommon_Enter.as_view(), name='get_bonus_per_common_enter'),
 
+    path('tasks/<int:tg_id>/', TaskPlayerDetailView.as_view(), name='task-player-detail'),
     path('task/<int:tg_id>/<str:dop_name>/', TaskPlayerDetailView.as_view(), name='task-player-detail'),
     path('task/<int:tg_id>/<str:dop_name>/start/', StartTaskView.as_view(), name='task-player-start'),
 
