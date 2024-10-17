@@ -1,4 +1,7 @@
 import os
+import random
+import uuid
+
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
@@ -141,6 +144,12 @@ class Upgrade_army_damage(APIView):
     def post(self, request):
         person = Person.objects.get(tg_id=request.data['tg_id'])
         warrior = Army.objects.get(person=person, id_person=request.data['id_warrior'])
+        print(warrior.max_lvl_upgrade)
+        print(warrior.lvl_damage)
+        print(person.money)
+        print(warrior.price_damage)
+        print(warrior.lvl_damage)
+        print(warrior.id)
         if person.money >= warrior.price_damage and warrior.lvl_damage < warrior.max_lvl_upgrade:
             try:
                 next_lvl_damage = data["Army"][f"{warrior.name}"]["damage"][f"{warrior.lvl_damage + 1}"]["lvl_damage"]
@@ -251,7 +260,13 @@ class Takin_Army(APIView):
                 'max_cards': i.max_cards,
                 'lvl': i.evolve_lvl,
                 'image': request.build_absolute_uri(f'media/{i.image.name}/').replace(
-                    f'/takin_army/{person.tg_id}', '')
+                    f'/takin_army/{person.tg_id}', ''),
+                'max_lvl_upgrade': i.max_lvl_upgrade,
+                'capacity': i.capacity,
+                'lvl_capacity': i.lvl_capacity,
+                'price_capacity': i.price_capacity,
+                'current_units': i.current_units,
+                'cp': i.calculate_cp()
             }
             for i in person.my_army.all()
         ]
@@ -621,3 +636,76 @@ class StartTaskView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+def generate_unique_id():
+    while True:
+        unique_id = random.randint(100000000, 999999999)  # Генерируем 10-значное число
+        if not Army.objects.filter(id_person=unique_id).exists():  # Проверяем, существует ли уже такой идентификатор
+            return unique_id
+
+
+class UpgradeArmyCapacity(APIView):
+    """
+    Эндпоинт для улучшения capacity армии пользователя.
+
+    Принимает POST-запрос с данными об идентификаторе пользователя и идентификаторе воина.
+
+    Необходимые переменные для корректной работы:
+    - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+    - `id_warrior`: Уникальный идентификатор воина (юнита).
+    """
+    def post(self, request):
+        person = Person.objects.get(tg_id=request.data['tg_id'])
+        warrior = Army.objects.get(person=person, id_person=request.data['id_warrior'])
+
+        if person.money >= warrior.price_capacity and warrior.lvl_capacity < warrior.max_lvl_upgrade:
+            try:
+                next_lvl_capacity = data["Army"][f"{warrior.name}"]["capacity"][f"{warrior.lvl_capacity + 1}"]["lvl_capacity"]
+                next_capacity = data["Army"][f"{warrior.name}"]["capacity"][f"{warrior.lvl_capacity + 1}"]["capacity"]
+                next_price_capacity = data["Army"][f"{warrior.name}"]["capacity"][f"{warrior.lvl_capacity + 1}"]["price_capacity"]
+            except KeyError:
+                return Response({'Error': 'Это максимальное улучшение'}, status=status.HTTP_400_BAD_REQUEST)
+
+            person.money -= warrior.price_capacity
+            person.upgrades_made += 1
+            person.money_spent += warrior.price_capacity
+            warrior.lvl_capacity = next_lvl_capacity
+            warrior.capacity = next_capacity
+            warrior.price_capacity = next_price_capacity
+
+            # Создаем новых юнитов с дефолтными значениями из модели
+            while warrior.current_units < warrior.capacity:
+                unique_id = generate_unique_id()
+                new_unit = Army.objects.create(
+                    image=warrior.image,
+                    id_person=unique_id,
+                    name=warrior.name,
+                    speed=Army._meta.get_field('speed').default,
+                    damage=Army._meta.get_field('damage').default,
+                    energy=Army._meta.get_field('energy').default,
+                    lvl_speed=Army._meta.get_field('lvl_speed').default,
+                    price_speed=Army._meta.get_field('price_speed').default,
+                    lvl_damage=Army._meta.get_field('lvl_damage').default,
+                    price_damage=Army._meta.get_field('price_damage').default,
+                    evolve_lvl=Army._meta.get_field('evolve_lvl').default,
+                    cards=Army._meta.get_field('cards').default,
+                    max_cards=Army._meta.get_field('max_cards').default,
+                    max_lvl_upgrade=Army._meta.get_field('max_lvl_upgrade').default,
+                    can_evolve=Army._meta.get_field('can_evolve').default,
+                    capacity=warrior.capacity,
+                    lvl_capacity=warrior.lvl_capacity,
+                    price_capacity=warrior.price_capacity,
+                    current_units=warrior.current_units
+                )
+
+                person.my_army.add(new_unit)
+                warrior.current_units += 1
+
+            person.save()
+            warrior.save()
+            return Response({'money': person.money, 'lvl_capacity': warrior.lvl_capacity,
+                             'capacity': warrior.capacity, 'price_capacity': warrior.price_capacity,
+                             'current_units': warrior.current_units}, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'Error': 'Улучшения недоступны. Следите за показателем денег и за максимально допустимым уровнем улучшения'},
+                status=status.HTTP_403_FORBIDDEN)

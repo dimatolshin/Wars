@@ -43,6 +43,14 @@
         "13": { "lvl_damage": 13, "damage": 17, "price_damage": 130, "energy": 1 },
         "14": { "lvl_damage": 14, "damage": 18, "price_damage": 140, "energy": 1 },
         "15": { "lvl_damage": 15, "damage": 19, "price_damage": 150, "energy": 1 }
+      },
+      "capacity": {
+        "0": { "lvl_capacity": 1, "capacity": 1, "price_capacity": 10 },
+        "1": { "lvl_capacity": 1, "capacity": 3, "price_capacity": 10 },
+        "2": { "lvl_capacity": 2, "capacity": 5, "price_capacity": 20 },
+        "3": { "lvl_capacity": 3, "capacity": 7, "price_capacity": 30 },
+        "4": { "lvl_capacity": 4, "capacity": 10, "price_capacity": 40 },
+        "5": { "lvl_capacity": 5, "capacity": 15, "price_capacity": 50 }
       }
     },
     "red": {
@@ -90,6 +98,14 @@
         "13": { "lvl_damage": 13, "damage": 70, "price_damage": 170, "energy": 1 },
         "14": { "lvl_damage": 14, "damage": 75, "price_damage": 180, "energy": 1 },
         "15": { "lvl_damage": 15, "damage": 80, "price_damage": 190, "energy": 1 }
+      },
+      "capacity": {
+        "0": { "lvl_capacity": 1, "capacity": 1, "price_capacity": 10 },
+        "1": { "lvl_capacity": 1, "capacity": 3, "price_capacity": 10 },
+        "2": { "lvl_capacity": 2, "capacity": 5, "price_capacity": 20 },
+        "3": { "lvl_capacity": 3, "capacity": 7, "price_capacity": 30 },
+        "4": { "lvl_capacity": 4, "capacity": 10, "price_capacity": 40 },
+        "5": { "lvl_capacity": 5, "capacity": 15, "price_capacity": 50 }
       }
     },
     "blue": {
@@ -137,6 +153,13 @@
         "13": { "lvl_damage": 13, "damage": 300, "price_damage": 360, "energy": 1 },
         "14": { "lvl_damage": 14, "damage": 320, "price_damage": 380, "energy": 1 },
         "15": { "lvl_damage": 15, "damage": 340, "price_damage": 400, "energy": 1 }
+      },
+      "capacity": {
+        "1": { "lvl_capacity": 1, "capacity": 10, "price_capacity": 10 },
+        "2": { "lvl_capacity": 2, "capacity": 12, "price_capacity": 20 },
+        "3": { "lvl_capacity": 3, "capacity": 14, "price_capacity": 30 },
+        "4": { "lvl_capacity": 4, "capacity": 16, "price_capacity": 40 },
+        "5": { "lvl_capacity": 5, "capacity": 18, "price_capacity": 50 }
       }
     },
     "bonus": {
@@ -184,6 +207,14 @@
         "13": { "lvl_damage": 13, "damage": 300, "price_damage": 360, "energy": 1 },
         "14": { "lvl_damage": 14, "damage": 320, "price_damage": 380, "energy": 1 },
         "15": { "lvl_damage": 15, "damage": 340, "price_damage": 400, "energy": 1 }
+      },
+      "capacity": {
+        "0": { "lvl_capacity": 1, "capacity": 1, "price_capacity": 10 },
+        "1": { "lvl_capacity": 1, "capacity": 3, "price_capacity": 10 },
+        "2": { "lvl_capacity": 2, "capacity": 5, "price_capacity": 20 },
+        "3": { "lvl_capacity": 3, "capacity": 7, "price_capacity": 30 },
+        "4": { "lvl_capacity": 4, "capacity": 10, "price_capacity": 40 },
+        "5": { "lvl_capacity": 5, "capacity": 15, "price_capacity": 50 }
       }
     }
   },

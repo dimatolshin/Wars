@@ -64,11 +64,21 @@ def add_bonus_in_list(sender, instance, created, **kwargs):
     )
 
 
+# Глобальный флаг для предотвращения рекурсии
+is_updating = False
+
+
 @receiver(post_save, sender=Army)
 def change_evolve_field(sender, instance, created, **kwargs):
-    if instance.cards >= instance.max_cards:
-        instance.can_evolve = True
-        instance.save()
+    global is_updating
+    if not is_updating:  # Проверяем, что обновление еще не началось
+        if instance.cards >= instance.max_cards:
+            instance.can_evolve = True
+            # Устанавливаем флаг, чтобы избежать рекурсии
+            is_updating = True
+            instance.save(update_fields=['can_evolve'])
+            # Сбрасываем флаг после сохранения
+            is_updating = False
 
 
 @receiver(post_save, sender=Person)

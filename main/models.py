@@ -66,8 +66,26 @@ class Army(models.Model):
     cards = models.IntegerField(default=0)
     max_cards = models.IntegerField(default=0)
     max_lvl_upgrade = models.IntegerField(default=5)
-    can_evolve=models.BooleanField(default=False)
+    can_evolve = models.BooleanField(default=False)
+    capacity = models.IntegerField(default=1, verbose_name='Максимальное количество юнитов этого типа')
+    lvl_capacity = models.IntegerField(default=1)
+    price_capacity = models.IntegerField(default=1)
+    current_units = models.IntegerField(default=1, verbose_name='Текущее количество юнитов')
 
+    def calculate_cp(self):
+        CP_GAIN_TABLE = {
+            'lvl_speed_cp': 5,
+            'lvl_damage_cp': 15,
+            'lvl_capacity_cp': 3,
+            'evolve_lvl_cp': 10
+        }
+
+        cp = (self.evolve_lvl * CP_GAIN_TABLE['evolve_lvl_cp']) + \
+             (self.lvl_speed * CP_GAIN_TABLE['lvl_speed_cp']) + \
+             (self.lvl_damage * CP_GAIN_TABLE['lvl_damage_cp']) + \
+             (self.lvl_capacity * CP_GAIN_TABLE['lvl_capacity_cp'])
+
+        return cp
 
     def __str__(self):
         return f'Имя:{self.name}, Скорость:{self.speed}, Урон:{self.damage}, lvl.speed:{self.lvl_speed}, lvl.damage:{self.lvl_damage}'

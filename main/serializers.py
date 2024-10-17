@@ -21,9 +21,16 @@ class CastleSerializer(serializers.ModelSerializer):
 
 
 class ArmySerializer(serializers.ModelSerializer):
+    cp = serializers.SerializerMethodField()
+
     class Meta:
         model = Army
-        fields = '__all__'
+        fields = ['id', 'name', 'speed', 'damage', 'energy', 'lvl_speed', 'price_speed', 'lvl_damage', 'price_damage',
+                  'evolve_lvl', 'cards', 'max_cards', 'max_lvl_upgrade', 'can_evolve', 'capacity', 'lvl_capacity',
+                  'price_capacity', 'current_units', 'cp']
+
+    def get_cp(self, obj):
+        return obj.calculate_cp()
 
 
 class ReferralSerializer(serializers.ModelSerializer):
