@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from mysite import settings
 from .models import *
 
 
@@ -40,7 +41,14 @@ class PictureSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if not representation['image']:
+        if representation['image']:
+            # Добавляем домен к пути изображения
+            request = self.context.get('request')
+            if request:
+                # Формируем полный URL-адрес
+                image_url = request.build_absolute_uri(f'{settings.MEDIA_URL}{instance.image.name}')
+                representation['image'] = image_url
+        else:
             representation['image'] = 'Nano'  # Устанавливаем значение по умолчанию, если изображение отсутствует
         return representation
 

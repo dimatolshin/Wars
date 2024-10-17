@@ -250,10 +250,10 @@ class Takin_Army(APIView):
                 'cards': i.cards,
                 'max_cards': i.max_cards,
                 'lvl': i.evolve_lvl,
-                'image': request.build_absolute_uri(f'media/{i.image.name}').replace(
+                'image': request.build_absolute_uri(f'media/{i.image.name}/').replace(
                     f'/takin_army/{person.tg_id}', '')
             }
-            for i in person.army.all()
+            for i in person.my_army.all()
         ]
         army_list.sort(key=lambda x: x['id_warrior'])
         return JsonResponse(army_list, safe=False)

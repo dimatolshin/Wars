@@ -71,12 +71,19 @@ def change_evolve_field(sender, instance, created, **kwargs):
         instance.save()
 
 
+@receiver(post_save, sender=Person)
+def assign_existing_tasks_to_player(sender, instance, created, **kwargs):
+    """Присваиваем все существующие задачи игроку при создании нового игрока."""
+    if created:
+        tasks = Task.objects.all()
+        for task in tasks:
+            PlayerTask.objects.create(person=instance, task=task)
+
+
 @receiver(post_save, sender=Task)
 def assign_task_to_all_players(sender, instance, created, **kwargs):
-    """При создании новой задачи, назначаем её всем игрокам."""
+    """Присваиваем новую задачу всем существующим игрокам."""
     if created:
-        # Используем транзакцию для гарантии целостности данных
-        with transaction.atomic():
-            persons = Person.objects.all()
-            for person in persons:
-                PlayerTask.objects.create(person=person, task=instance)
+        players = Person.objects.all()
+        player_tasks = [PlayerTask(person=player, task=instance) for player in players]
+        PlayerTask.objects.bulk_create(player_tasks)

@@ -18,12 +18,12 @@ schema_view = get_schema_view(
 app_name = "main"
 
 urlpatterns = [
-    path('main_info/<int:tg_id>/<str:name>/', MainPage.as_view(), name='main_info'),
-    path('tap-tap/', Tap.as_view(), name='tap-tap'),
-    path('upgrade_army_bring_money/', Upgrade_army_damage.as_view(), name='upgrade_army_bring_money'),
-    path('upgrade_army_speed/', Upgrade_army_speed.as_view(), name='upgrade_army_speed'),
-    path('media/<str:name>/', Url_Picture.as_view(), name='url_picture'),
-    path('takin_army/<int:tg_id>/', Takin_Army.as_view(), name='Takin_Army'),
+    path('main_info/<int:tg_id>/<str:name>/', MainPage.as_view(), name='main_info'),  # работает
+    path('tap-tap/', Tap.as_view(), name='tap-tap'),  # работает
+    path('upgrade_army_bring_money/', Upgrade_army_damage.as_view(), name='upgrade_army_bring_money'),  # работает
+    path('upgrade_army_speed/', Upgrade_army_speed.as_view(), name='upgrade_army_speed'),  # работает
+    path('media/<str:name>/', Url_Picture.as_view(), name='url_picture'),  # работает
+    path('takin_army/<int:tg_id>/', Takin_Army.as_view(), name='Takin_Army'),  # работает
     path('completeReferral/<int:new_id>/<int:referral_id>/', CompleteReferralSystem.as_view(),
          name='Complete_referral'),
     path('all_friends/<int:tg_id>/', AllFriends.as_view(), name='all_friends'),
