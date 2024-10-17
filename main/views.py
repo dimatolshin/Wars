@@ -262,7 +262,7 @@ class Takin_Army(APIView):
                 'current_units': i.current_units,
                 'cp': i.calculate_cp()
             }
-            for i in person.my_army.all()
+            for i in person.army.all()
         ]
         army_list.sort(key=lambda x: x['id_warrior'])
         return JsonResponse(army_list, safe=False)

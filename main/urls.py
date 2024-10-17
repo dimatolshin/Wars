@@ -40,6 +40,7 @@ urlpatterns = [
     path('task/<int:tg_id>/<str:dop_name>/', TaskPlayerDetailView.as_view(), name='task-player-detail'),
     path('task/<int:tg_id>/<str:dop_name>/start/', StartTaskView.as_view(), name='task-player-start'),
     path('upgrade_army_capacity/', UpgradeArmyCapacity.as_view(), name='upgrade_army_capacity'),
+    path('generate_link/<int:tg_id>/', GenerateRefLinkView.as_view(), name='generate_link'),
 
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
