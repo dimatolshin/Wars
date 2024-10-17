@@ -561,7 +561,7 @@ class TaskPlayerDetailView(APIView):
         if not tasks.exists():
             return Response({"detail": "Задачи не найдены"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = PlayerTaskSerializer(tasks, many=True)
+        serializer = PlayerTaskSerializer(tasks, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request, tg_id, dop_name):
