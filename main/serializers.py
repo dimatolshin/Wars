@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from mysite import settings
 from .models import *
 
 
@@ -20,9 +21,16 @@ class CastleSerializer(serializers.ModelSerializer):
 
 
 class ArmySerializer(serializers.ModelSerializer):
+    cp = serializers.SerializerMethodField()
+
     class Meta:
         model = Army
-        fields = '__all__'
+        fields = ['id', 'name', 'speed', 'damage', 'energy', 'lvl_speed', 'price_speed', 'lvl_damage', 'price_damage',
+                  'evolve_lvl', 'cards', 'max_cards', 'max_lvl_upgrade', 'can_evolve', 'capacity', 'lvl_capacity',
+                  'price_capacity', 'current_units', 'cp']
+
+    def get_cp(self, obj):
+        return obj.calculate_cp()
 
 
 class ReferralSerializer(serializers.ModelSerializer):
@@ -40,7 +48,14 @@ class PictureSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        if not representation['image']:
+        if representation['image']:
+            # Добавляем домен к пути изображения
+            request = self.context.get('request')
+            if request:
+                # Формируем полный URL-адрес
+                image_url = request.build_absolute_uri(f'{settings.MEDIA_URL}{instance.image.name}')
+                representation['image'] = image_url
+        else:
             representation['image'] = 'Nano'  # Устанавливаем значение по умолчанию, если изображение отсутствует
         return representation
 
