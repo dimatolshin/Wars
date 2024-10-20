@@ -12,9 +12,13 @@ class CastleAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Army)
 class ArmyAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('name', 'get_owners', 'speed', 'damage', 'energy', 'current_units')
+    list_filter = ('person',)
+    search_fields = ('name', 'person__name')
+
+
+admin.site.register(Army, ArmyAdmin)
 
 
 @admin.register(Picture)

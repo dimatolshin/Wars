@@ -23,9 +23,9 @@ class OpenBoxView(generics.GenericAPIView):
         - `cards_received`: Словарь с количеством полученных карт каждого типа.
     """
 
-    def post(self, request, tg_id):
+    def post(self, request):
         # Получаем персонажа
-        person = Person.objects.get(tg_id=tg_id)
+        person = Person.objects.get(tg_id=request.data['tg_id'] )
         chest = Box.objects.get(id=1)
 
         # Генерация валюты

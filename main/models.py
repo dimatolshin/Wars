@@ -6,7 +6,6 @@ from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 
-
 file_path = os.path.join(os.path.dirname(__file__), 'info_for_db.json')
 with open(file_path, 'r') as file:
     data = json.load(file)
@@ -24,9 +23,12 @@ class Person(models.Model):
     army = models.ManyToManyField('Army', related_name='person', null=True, blank=True)
     my_army = models.ManyToManyField('Army', related_name='my_army', null=True, blank=True)
     units_produced = models.IntegerField(default=0, verbose_name='Выпущено юнитов')  # Добавил в class Tap(APIView)
-    upgrades_made = models.IntegerField(default=0, verbose_name='Сделано апгрейдов')  # class Upgrade_army_damage(APIView) и class Upgrade_army_speed(APIView) и class EvolveCards(APIView)
-    castles_destroyed = models.IntegerField(default=0, verbose_name='Разорено замков')  # @receiver(post_save, sender=Castle)
-    money_spent = models.IntegerField(default=0, verbose_name='Потрачено монет')  # class Upgrade_army_damage(APIView) и class Upgrade_army_speed(APIView)
+    upgrades_made = models.IntegerField(default=0,
+                                        verbose_name='Сделано апгрейдов')  # class Upgrade_army_damage(APIView) и class Upgrade_army_speed(APIView) и class EvolveCards(APIView)
+    castles_destroyed = models.IntegerField(default=0,
+                                            verbose_name='Разорено замков')  # @receiver(post_save, sender=Castle)
+    money_spent = models.IntegerField(default=0,
+                                      verbose_name='Потрачено монет')  # class Upgrade_army_damage(APIView) и class Upgrade_army_speed(APIView)
     friends_invited = models.IntegerField(default=0, verbose_name='Приглашено друзей')  # class AllFriends(APIView):
 
     def __str__(self):
@@ -87,6 +89,41 @@ class Army(models.Model):
 
         return cp
 
+    def calculate_cp_max(self):
+        CP_GAIN_TABLE = {
+            'lvl_speed_cp': 5,
+            'lvl_damage_cp': 15,
+            'lvl_capacity_cp': 3,
+            'evolve_lvl_cp': 10
+        }
+        if self.name == 'white':
+            army = data["Army"]["white"]
+        elif self.name == 'red':
+            army = data["Army"]["red"]
+        elif self.name == 'blue':
+            army = data["Army"]["blue"]
+        elif self.name == 'bonus':
+            army = data["Army"]["bonus"]
+        else:
+            return 0
+
+        max_evolve_lvl = max(entry["evolve_lvl"] for entry in army["card"].values())
+        max_lvl_speed = max(entry["lvl_speed"] for entry in army["speed"].values())
+        max_lvl_damage = max(entry["lvl_damage"] for entry in army["damage"].values())
+        max_lvl_capacity = max(entry["lvl_capacity"] for entry in army["capacity"].values())
+
+        max_cp = (max_evolve_lvl * CP_GAIN_TABLE['evolve_lvl_cp']) + \
+                 (max_lvl_speed * CP_GAIN_TABLE['lvl_speed_cp']) + \
+                 (max_lvl_damage * CP_GAIN_TABLE['lvl_damage_cp']) + \
+                 (max_lvl_capacity * CP_GAIN_TABLE['lvl_capacity_cp'])
+
+        return max_cp
+
+    def get_owners(self):
+        return ", ".join([person.name for person in self.person.all()])
+
+    get_owners.short_description = 'Владельцы'
+
     def __str__(self):
         return f'Имя:{self.name}, Скорость:{self.speed}, Урон:{self.damage}, lvl.speed:{self.lvl_speed}, lvl.damage:{self.lvl_damage}'
 
@@ -118,8 +155,8 @@ class PassiveEarning(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=100)
     image = models.ForeignKey(Picture, on_delete=models.SET_NULL, related_name='passive_earning', null=True, blank=True)
-    price=models.PositiveIntegerField(default=1)
-    profit_in_hour=models.PositiveIntegerField(default=1)
+    price = models.PositiveIntegerField(default=1)
+    profit_in_hour = models.PositiveIntegerField(default=1)
     cooldown = models.PositiveIntegerField(default=1)
 
     def __str__(self):
@@ -177,7 +214,7 @@ class Task(models.Model):
     condition_value = models.IntegerField(default=0,
                                           verbose_name='Значение условия')  # Указываем количество для CONDITION_TYPE_CHOICES
     condition_now = models.IntegerField(default=0,
-                                        verbose_name='Текущее значение условия') # Указываем текущее достижение у юзера для CONDITION_TYPE_CHOICES
+                                        verbose_name='Текущее значение условия')  # Указываем текущее достижение у юзера для CONDITION_TYPE_CHOICES
     reward_currency = models.IntegerField(default=0, verbose_name='Награда (монет)')
     chest = models.BooleanField(default=False, verbose_name='Награда (сундук)')
     is_active = models.BooleanField(default=True, verbose_name="Активность задачи")
@@ -251,19 +288,22 @@ class PlayerTask(models.Model):
 
             elif self.task.condition_type == 'destroy_castle':
                 current_level_data = next(
-                    (level for level in data["PlayerTask"]["destroy_castle"] if level["level"] == self.current_level), None)
+                    (level for level in data["PlayerTask"]["destroy_castle"] if level["level"] == self.current_level),
+                    None)
                 self.check_task_completion("destroy_castle", current_level_data, self.person.castles_destroyed,
                                            current_level_data["reward_currency"])
 
             elif self.task.condition_type == 'spend_money':
                 current_level_data = next(
-                    (level for level in data["PlayerTask"]["spend_money"] if level["level"] == self.current_level), None)
+                    (level for level in data["PlayerTask"]["spend_money"] if level["level"] == self.current_level),
+                    None)
                 self.check_task_completion("spend_money", current_level_data, self.person.money_spent,
                                            current_level_data["reward_currency"])
 
             elif self.task.condition_type == 'invite_friends':
                 current_level_data = next(
-                    (level for level in data["PlayerTask"]["invite_friends"] if level["level"] == self.current_level), None)
+                    (level for level in data["PlayerTask"]["invite_friends"] if level["level"] == self.current_level),
+                    None)
                 self.check_task_completion("invite_friends", current_level_data, self.person.friends_invited,
                                            current_level_data["reward_currency"])
 
