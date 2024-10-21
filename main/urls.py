@@ -33,7 +33,7 @@ urlpatterns = [
     path('all_show_cards/', ShowAllCards.as_view(), name='all_cards'),
     path('evolve_cards/', EvolveCards.as_view(), name='evo_cards'),
     path('info_bonus/<int:tg_id>/', InfoBonus.as_view(), name='info_bonus'),
-    path('check_and_give_daly_bonus/', Check_And_Give_Daly_Bonus.as_view(), name='check_and_give_daly_bonus'),
+    path('check_and_give_daly_bonus/<int:tg_id>/', Check_And_Give_Daly_Bonus.as_view(), name='check_and_give_daly_bonus'),
     path('get_bonus_per_common_enter/', Get_Bonus_per_Сommon_Enter.as_view(), name='get_bonus_per_common_enter'),
 
     path('tasks/<int:tg_id>/', TaskPlayerDetailView.as_view(), name='task-player-detail'),
