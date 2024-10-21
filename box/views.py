@@ -1,21 +1,26 @@
 import json
 import os
 import random
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from main.models import Person, Army
 from .models import Box
+from .serializers import BoxSerializer
 
 
 class OpenBoxView(generics.GenericAPIView):
     """
-        Эндпоинт для открытия сундука и получения наград.
+        Эндпоинт для получения списка всех доступных сундуков и открытия выбранного сундука.
 
-        Принимает POST-запрос с идентификатором пользователя (tg_id).
+        GET:
+        Возвращает:
+        - Список сундуков с их идентификаторами и описаниями.
 
-        Необходимые переменные для корректной работы:
+        POST:
+        Принимает:
         - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `box_id`: Уникальный идентификатор сундука.
 
         Возвращает:
         - `currency_received`: Количество полученных монет.
@@ -23,10 +28,15 @@ class OpenBoxView(generics.GenericAPIView):
         - `cards_received`: Словарь с количеством полученных карт каждого типа.
     """
 
+    def get(self, request):
+        boxes = Box.objects.filter(is_active=True)
+        serializer = BoxSerializer(boxes, many=True)
+        return Response(serializer.data,  status=status.HTTP_200_OK)
+
     def post(self, request):
         # Получаем персонажа
-        person = Person.objects.get(tg_id=request.data['tg_id'] )
-        chest = Box.objects.get(id=1)
+        person = Person.objects.get(tg_id=request.data['tg_id'])
+        chest = Box.objects.get(id=request.data['box_id'])
 
         # Генерация валюты
         currency_amount = random.randint(chest.currency_min, chest.currency_max)
