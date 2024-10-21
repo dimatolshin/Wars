@@ -1,23 +1,31 @@
-import json
-import os
 import random
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from main.models import Person, Army
 from .models import Box
 from .serializers import BoxSerializer
 
 
 class OpenBoxView(generics.GenericAPIView):
-    """
+    @swagger_auto_schema(
+        operation_description="""
         Эндпоинт для получения списка всех доступных сундуков и открытия выбранного сундука.
-
         GET:
         Возвращает:
         - Список сундуков с их идентификаторами и описаниями.
+        """,
+        responses={200: BoxSerializer(many=True)}
+    )
+    def get(self, request):
+        boxes = Box.objects.filter(is_active=True)
+        serializer = BoxSerializer(boxes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        POST:
+    @swagger_auto_schema(
+        operation_description="""
+        Эндпоинт для открытия выбранного сундука.
+
         Принимает:
         - `tg_id`: Уникальный идентификатор пользователя в Telegram.
         - `box_id`: Уникальный идентификатор сундука.
@@ -26,13 +34,8 @@ class OpenBoxView(generics.GenericAPIView):
         - `currency_received`: Количество полученных монет.
         - `card_count`: Общее количество полученных карт.
         - `cards_received`: Словарь с количеством полученных карт каждого типа.
-    """
-
-    def get(self, request):
-        boxes = Box.objects.filter(is_active=True)
-        serializer = BoxSerializer(boxes, many=True)
-        return Response(serializer.data,  status=status.HTTP_200_OK)
-
+        """,
+    )
     def post(self, request):
         # Получаем персонажа
         person = Person.objects.get(tg_id=request.data['tg_id'])
