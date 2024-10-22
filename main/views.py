@@ -503,8 +503,9 @@ class Check_And_Give_Daly_Bonus(APIView):
         bonus_day = last_visit.week_streak if last_visit else 1
         # Добавляем информацию о бонусах на каждый день
         daily_bonuses = data['Daly_Bonus']
+        daily_bonus_list = [{day: bonuses} for day, bonuses in daily_bonuses.items()]
         response_data = {
-            'daily_bonuses': daily_bonuses,
+            'daily_bonuses': daily_bonus_list,
             'last_bonus_day': bonus_day,  # Добавляем последний день, за который был получен бонус
             'has_taken_bonus_today': has_taken_bonus_today  # Добавляем флаг, забрал ли пользователь бонус сегодня
         }
