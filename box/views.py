@@ -8,6 +8,9 @@ from .serializers import BoxSerializer
 
 
 class OpenBoxView(generics.GenericAPIView):
+    serializer_class = BoxSerializer
+    queryset = Box.objects.filter(is_active=True)
+
     @swagger_auto_schema(
         operation_description="""
         Эндпоинт для получения списка всех доступных сундуков и открытия выбранного сундука.
@@ -18,8 +21,8 @@ class OpenBoxView(generics.GenericAPIView):
         responses={200: BoxSerializer(many=True)}
     )
     def get(self, request):
-        boxes = Box.objects.filter(is_active=True)
-        serializer = BoxSerializer(boxes, many=True)
+        boxes = self.get_queryset()
+        serializer = self.get_serializer(boxes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
