@@ -30,6 +30,9 @@ class Person(models.Model):
     money_spent = models.IntegerField(default=0,
                                       verbose_name='Потрачено монет')  # class Upgrade_army_damage(APIView) и class Upgrade_army_speed(APIView)
     friends_invited = models.IntegerField(default=0, verbose_name='Приглашено друзей')  # class AllFriends(APIView):
+    box_bronze = models.BooleanField(default=False, verbose_name='Забрал бронзовый сундук/нет')
+    box_silver = models.BooleanField(default=False, verbose_name='Забрал серебренный сундук/нет')
+    box_gold = models.BooleanField(default=False, verbose_name='Забрал золотой сундук/нет')
 
     def __str__(self):
         return f'Имя:{self.name}, id:{self.pk}, tg_id:{self.tg_id}'

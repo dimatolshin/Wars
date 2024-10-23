@@ -43,6 +43,12 @@ class OpenBoxView(generics.GenericAPIView):
         # Получаем персонажа
         person = Person.objects.get(tg_id=request.data['tg_id'])
         chest = Box.objects.get(id=request.data['box_id'])
+        if chest.name == 'Bronze':
+            person.box_bronze = True
+        elif chest.name == 'Silver':
+            person.box_silver = True
+        elif chest.name == 'Gold':
+            person.box_gold = True
 
         # Генерация валюты
         currency_amount = random.randint(chest.currency_min, chest.currency_max)

@@ -96,7 +96,10 @@ class MainPage(APIView):
             'upgrades_made': person.upgrades_made,
             'castles_destroyed': person.castles_destroyed,
             'money_spent': person.money_spent,
-            'friends_invited': person.friends_invited
+            'friends_invited': person.friends_invited,
+            'box_bronze': person.box_bronze,
+            'box_silver': person.box_silver,
+            'box_gold': person.box_gold
         }
 
         return JsonResponse(person_list)
@@ -125,7 +128,7 @@ class Tap(APIView):
         person.now_energy = energy
         person.units_produced += energy
         castle.now_hp = int(hp)
-        person.save(update_fields=['now_energy', 'money'])
+        person.save(update_fields=['now_energy', 'money', 'units_produced'])
         castle.save()
         data = {'money': person.money, 'energy_now': person.now_energy, 'hp_castle_now': castle.now_hp, }
         return JsonResponse(data)
