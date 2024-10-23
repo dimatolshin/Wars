@@ -269,7 +269,37 @@ class Takin_Army(APIView):
             for i in person.army.all()
         ]
         army_list.sort(key=lambda x: x['id_warrior'])
-        return JsonResponse(army_list, safe=False)
+        my_army_list = [
+            {
+                'id_warrior': i.id_person,
+                'name': i.name,
+                'speed': i.speed,
+                'damage': i.damage,
+                'lvl_speed': i.lvl_speed,
+                'price_speed': i.price_speed,
+                'lvl_damage': i.lvl_damage,
+                'price_damage': i.price_damage,
+                'cards': i.cards,
+                'max_cards': i.max_cards,
+                'lvl': i.evolve_lvl,
+                'image': request.build_absolute_uri(f'media/{i.image.name}/').replace(
+                    f'/takin_army/{person.tg_id}', ''),
+                'max_lvl_upgrade': i.max_lvl_upgrade,
+                'capacity': i.capacity,
+                'lvl_capacity': i.lvl_capacity,
+                'price_capacity': i.price_capacity,
+                'current_units': i.current_units,
+                'cp': i.calculate_cp(),
+                'max_cp': i.calculate_cp_max()
+            }
+            for i in person.my_army.all()
+        ]
+        my_army_list.sort(key=lambda x: x['id_warrior'])
+        response_data = {
+            'all_army': army_list,
+            'my_army': my_army_list
+        }
+        return JsonResponse(response_data, safe=False)
 
 
 class CompleteReferralSystem(APIView):
@@ -506,9 +536,12 @@ class Check_And_Give_Daly_Bonus(APIView):
         bonus_day = last_visit.week_streak if last_visit else 1
         # Добавляем информацию о бонусах на каждый день
         daily_bonuses = data['Daly_Bonus']
-        daily_bonus_list = [{day: bonuses} for day, bonuses in daily_bonuses.items()]
+        daily_bonus_list = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0]))]
+        # Добавляем информацию о бонусах в сундуках
+        box_bonuses = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) >= 8]
         response_data = {
             'daily_bonuses': daily_bonus_list,
+            'box_bonuses': box_bonuses,
             'last_bonus_day': bonus_day,  # Добавляем последний день, за который был получен бонус
             'has_taken_bonus_today': has_taken_bonus_today  # Добавляем флаг, забрал ли пользователь бонус сегодня
         }
