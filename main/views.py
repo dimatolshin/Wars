@@ -452,7 +452,14 @@ class EvolveCards(APIView):
     """
     def post(self, request):
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
-        warrior = get_object_or_404(Army, id_person=request.data['id_warrior'], person=person)
+        warrior_id = request.data['id_warrior']
+        warrior = person.army.filter(id_person=warrior_id).first()
+        if not warrior:
+            return Response({'Error': 'Воин не найден в армии'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not person.my_army.filter(id=warrior_id).exists():
+            person.my_army.add(warrior)
+            person.save()
         if warrior.cards >= warrior.max_cards:
             try:
                 next_evolve_lvl = data["Army"][f"{warrior.name}"]["card"][f"{warrior.evolve_lvl + 1}"]["evolve_lvl"]
