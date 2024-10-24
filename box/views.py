@@ -1,32 +1,54 @@
-import json
-import os
 import random
-from rest_framework import generics
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from main.models import Person, Army
 from .models import Box
+from .serializers import BoxSerializer
 
 
 class OpenBoxView(generics.GenericAPIView):
-    """
-        Эндпоинт для открытия сундука и получения наград.
+    serializer_class = BoxSerializer
+    queryset = Box.objects.filter(is_active=True)
 
-        Принимает POST-запрос с идентификатором пользователя (tg_id).
+    @swagger_auto_schema(
+        operation_description="""
+        Эндпоинт для получения списка всех доступных сундуков и открытия выбранного сундука.
+        GET:
+        Возвращает:
+        - Список сундуков с их идентификаторами и описаниями.
+        """,
+        responses={200: BoxSerializer(many=True)}
+    )
+    def get(self, request):
+        boxes = self.get_queryset()
+        serializer = self.get_serializer(boxes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        Необходимые переменные для корректной работы:
+    @swagger_auto_schema(
+        operation_description="""
+        Эндпоинт для открытия выбранного сундука.
+
+        Принимает:
         - `tg_id`: Уникальный идентификатор пользователя в Telegram.
+        - `box_id`: Уникальный идентификатор сундука.
 
         Возвращает:
         - `currency_received`: Количество полученных монет.
         - `card_count`: Общее количество полученных карт.
         - `cards_received`: Словарь с количеством полученных карт каждого типа.
-    """
-
-    def post(self, request, tg_id):
+        """,
+    )
+    def post(self, request):
         # Получаем персонажа
-        person = Person.objects.get(tg_id=tg_id)
-        chest = Box.objects.get(id=1)
+        person = Person.objects.get(tg_id=request.data['tg_id'])
+        chest = Box.objects.get(id=request.data['box_id'])
+        if chest.name == 'Bronze':
+            person.box_bronze = True
+        elif chest.name == 'Silver':
+            person.box_silver = True
+        elif chest.name == 'Gold':
+            person.box_gold = True
 
         # Генерация валюты
         currency_amount = random.randint(chest.currency_min, chest.currency_max)

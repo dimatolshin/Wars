@@ -33,6 +33,9 @@ def my_changed_hp_castle(sender, instance, created, **kwargs):
             next_lvl_person = data["Person"][f"{instance.person.lvl + 1}"]["lvl"]
             instance.lvl = next_lvl_castle
             instance.person.lvl = next_lvl_person
+            instance.person.box_bronze = False
+            instance.person.box_silver = False
+            instance.person.box_gold = False
         except KeyError:
             logger.error(
                 f"Ошибка:Вы достигли макимального уровня прокачки !"

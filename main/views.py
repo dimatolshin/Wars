@@ -96,7 +96,10 @@ class MainPage(APIView):
             'upgrades_made': person.upgrades_made,
             'castles_destroyed': person.castles_destroyed,
             'money_spent': person.money_spent,
-            'friends_invited': person.friends_invited
+            'friends_invited': person.friends_invited,
+            'box_bronze': person.box_bronze,
+            'box_silver': person.box_silver,
+            'box_gold': person.box_gold
         }
 
         return JsonResponse(person_list)
@@ -125,7 +128,7 @@ class Tap(APIView):
         person.now_energy = energy
         person.units_produced += energy
         castle.now_hp = int(hp)
-        person.save(update_fields=['now_energy', 'money'])
+        person.save(update_fields=['now_energy', 'money', 'units_produced'])
         castle.save()
         data = {'money': person.money, 'energy_now': person.now_energy, 'hp_castle_now': castle.now_hp, }
         return JsonResponse(data)
@@ -260,12 +263,43 @@ class Takin_Army(APIView):
                 'lvl_capacity': i.lvl_capacity,
                 'price_capacity': i.price_capacity,
                 'current_units': i.current_units,
-                'cp': i.calculate_cp()
+                'cp': i.calculate_cp(),
+                'max_cp': i.calculate_cp_max()
             }
             for i in person.army.all()
         ]
         army_list.sort(key=lambda x: x['id_warrior'])
-        return JsonResponse(army_list, safe=False)
+        my_army_list = [
+            {
+                'id_warrior': i.id_person,
+                'name': i.name,
+                'speed': i.speed,
+                'damage': i.damage,
+                'lvl_speed': i.lvl_speed,
+                'price_speed': i.price_speed,
+                'lvl_damage': i.lvl_damage,
+                'price_damage': i.price_damage,
+                'cards': i.cards,
+                'max_cards': i.max_cards,
+                'lvl': i.evolve_lvl,
+                'image': request.build_absolute_uri(f'media/{i.image.name}/').replace(
+                    f'/takin_army/{person.tg_id}', ''),
+                'max_lvl_upgrade': i.max_lvl_upgrade,
+                'capacity': i.capacity,
+                'lvl_capacity': i.lvl_capacity,
+                'price_capacity': i.price_capacity,
+                'current_units': i.current_units,
+                'cp': i.calculate_cp(),
+                'max_cp': i.calculate_cp_max()
+            }
+            for i in person.my_army.all()
+        ]
+        my_army_list.sort(key=lambda x: x['id_warrior'])
+        response_data = {
+            'all_army': army_list,
+            'my_army': my_army_list
+        }
+        return JsonResponse(response_data, safe=False)
 
 
 class CompleteReferralSystem(APIView):
@@ -479,10 +513,12 @@ class Check_And_Give_Daly_Bonus(APIView):
         - `tg_id`: Уникальный идентификатор пользователя в Telegram.
     """
 
-    def get(self, request):
+    def get(self, request, tg_id: int):
         """
             Описание:
-            Метод GET используется для получения информации о текущем статусе ежедневного бонуса пользователя. Возвращает информацию о том, забрал ли пользователь бонус сегодня, последний день, за который был получен бонус, а также список бонусов на каждый день.
+            Метод GET используется для получения информации о текущем статусе ежедневного бонуса пользователя.
+            Возвращает информацию о том, забрал ли пользователь бонус сегодня, последний день, за который был получен
+            бонус, а также список бонусов на каждый день.
             Параметры:
             tg_id: Уникальный идентификатор пользователя в Telegram. Обязательный параметр.
             Возвращаемое значение:
@@ -491,7 +527,7 @@ class Check_And_Give_Daly_Bonus(APIView):
             last_bonus_day: Последний день, за который был получен бонус.
             has_taken_bonus_today: Флаг, указывающий, забрал ли пользователь бонус сегодня.
         """
-        person = get_object_or_404(Person, tg_id=request.query_params['tg_id'])
+        person = get_object_or_404(Person, tg_id=tg_id)
         today = timezone.now().date()
         # Проверяем, забрал ли пользователь бонус сегодня
         has_taken_bonus_today = Visit.objects.filter(person=person, date=today, get_bonus=True).exists()
@@ -500,8 +536,12 @@ class Check_And_Give_Daly_Bonus(APIView):
         bonus_day = last_visit.week_streak if last_visit else 1
         # Добавляем информацию о бонусах на каждый день
         daily_bonuses = data['Daly_Bonus']
+        daily_bonus_list = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0]))]
+        # Добавляем информацию о бонусах в сундуках
+        box_bonuses = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) >= 8]
         response_data = {
-            'daily_bonuses': daily_bonuses,
+            'daily_bonuses': daily_bonus_list,
+            'box_bonuses': box_bonuses,
             'last_bonus_day': bonus_day,  # Добавляем последний день, за который был получен бонус
             'has_taken_bonus_today': has_taken_bonus_today  # Добавляем флаг, забрал ли пользователь бонус сегодня
         }
@@ -510,7 +550,9 @@ class Check_And_Give_Daly_Bonus(APIView):
     def post(self, request):
         """
             Описание:
-            Метод POST используется для выдачи ежедневного бонуса пользователю. Если пользователь уже забрал бонус сегодня, возвращается соответствующее сообщение. В противном случае, бонус выдается, и пользователь получает соответствующие ресурсы (деньги, кристаллы, энергия).
+            Метод POST используется для выдачи ежедневного бонуса пользователю. Если пользователь уже забрал бонус
+            сегодня, возвращается соответствующее сообщение. В противном случае, бонус выдается, и пользователь получает
+            соответствующие ресурсы (деньги, кристаллы, энергия).
             Параметры:
             tg_id: Уникальный идентификатор пользователя в Telegram. Обязательный параметр.
             Возвращаемое значение:

@@ -246,10 +246,10 @@
     "referral": {
       "ordinary":{
             "money": 50000,
-            "cards": 2},
+            "cards": 1},
       "prime":{
             "money": 100000,
-            "cards": 4}
+            "cards": 5}
     },
     "new_person": {
       "money": 10000

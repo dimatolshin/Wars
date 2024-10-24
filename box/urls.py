@@ -2,8 +2,8 @@ from django.urls import path, include
 from .views import *
 
 
-app_name = "main"
+app_name = "box"
 
 urlpatterns = [
-    path('open/<int:tg_id>/', OpenBoxView.as_view(), name='open_box'),
+    path('open/', OpenBoxView.as_view(), name='open_box'),
 ]
