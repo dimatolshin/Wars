@@ -78,17 +78,20 @@ class Army(models.Model):
     current_units = models.IntegerField(default=1, verbose_name='Текущее количество юнитов')
 
     def calculate_cp(self):
-        CP_GAIN_TABLE = {
-            'lvl_speed_cp': 5,
-            'lvl_damage_cp': 15,
-            'lvl_capacity_cp': 3,
-            'evolve_lvl_cp': 10
-        }
+        if self.evolve_lvl != 0:
+            CP_GAIN_TABLE = {
+                'lvl_speed_cp': 5,
+                'lvl_damage_cp': 15,
+                'lvl_capacity_cp': 3,
+                'evolve_lvl_cp': 10
+            }
 
-        cp = (self.evolve_lvl * CP_GAIN_TABLE['evolve_lvl_cp']) + \
-             (self.lvl_speed * CP_GAIN_TABLE['lvl_speed_cp']) + \
-             (self.lvl_damage * CP_GAIN_TABLE['lvl_damage_cp']) + \
-             (self.lvl_capacity * CP_GAIN_TABLE['lvl_capacity_cp'])
+            cp = (self.evolve_lvl * CP_GAIN_TABLE['evolve_lvl_cp']) + \
+                 (self.lvl_speed * CP_GAIN_TABLE['lvl_speed_cp']) + \
+                 (self.lvl_damage * CP_GAIN_TABLE['lvl_damage_cp']) + \
+                 (self.lvl_capacity * CP_GAIN_TABLE['lvl_capacity_cp'])
+        else:
+            cp = 0
 
         return cp
 

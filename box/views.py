@@ -74,8 +74,8 @@ class OpenBoxView(generics.GenericAPIView):
         for card_type, count in cards_received.items():
             if count > 0:
                 # Ищем армию по названию типа карты
-                army = person.my_army.filter(name=card_type).first()
-                if army:
+                army = person.army.filter(name=card_type).first()
+                if army.cards < army.max_cards:
                     army.cards += count  # Увеличиваем количество карт
                     army.save()
 

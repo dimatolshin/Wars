@@ -536,9 +536,11 @@ class Check_And_Give_Daly_Bonus(APIView):
         bonus_day = last_visit.week_streak if last_visit else 1
         # Добавляем информацию о бонусах на каждый день
         daily_bonuses = data['Daly_Bonus']
-        daily_bonus_list = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0]))]
+        daily_bonus_list = [{"day": int(day), **bonus} for day, bonus in
+                            sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) < 8]
         # Добавляем информацию о бонусах в сундуках
-        box_bonuses = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) >= 8]
+        box_bonuses = [{"day": int(day), **bonus} for day, bonus in
+                       sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) >= 8]
         response_data = {
             'daily_bonuses': daily_bonus_list,
             'box_bonuses': box_bonuses,
