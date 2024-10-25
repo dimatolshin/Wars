@@ -452,7 +452,14 @@ class EvolveCards(APIView):
     """
     def post(self, request):
         person = get_object_or_404(Person, tg_id=request.data['tg_id'])
-        warrior = get_object_or_404(Army, id_person=request.data['id_warrior'], person=person)
+        warrior_id = request.data['id_warrior']
+        warrior = person.army.filter(id_person=warrior_id).first()
+        if not warrior:
+            return Response({'Error': 'Воин не найден в армии'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not person.my_army.filter(id=warrior_id).exists():
+            person.my_army.add(warrior)
+            person.save()
         if warrior.cards >= warrior.max_cards:
             try:
                 next_evolve_lvl = data["Army"][f"{warrior.name}"]["card"][f"{warrior.evolve_lvl + 1}"]["evolve_lvl"]
@@ -536,9 +543,11 @@ class Check_And_Give_Daly_Bonus(APIView):
         bonus_day = last_visit.week_streak if last_visit else 1
         # Добавляем информацию о бонусах на каждый день
         daily_bonuses = data['Daly_Bonus']
-        daily_bonus_list = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0]))]
+        daily_bonus_list = [{"day": int(day), **bonus} for day, bonus in
+                            sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) < 8]
         # Добавляем информацию о бонусах в сундуках
-        box_bonuses = [bonus for day, bonus in sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) >= 8]
+        box_bonuses = [{"day": int(day), **bonus} for day, bonus in
+                       sorted(daily_bonuses.items(), key=lambda x: int(x[0])) if int(day) >= 8]
         response_data = {
             'daily_bonuses': daily_bonus_list,
             'box_bonuses': box_bonuses,
